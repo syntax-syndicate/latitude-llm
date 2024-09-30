@@ -132,7 +132,7 @@ export async function destroyOrSoftDeleteDocuments({
   commit: Commit
   trx?: typeof database
 }): Promise<TypedResult<boolean, Error>> {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const commitId = commit.id
     const existingUuids = await findUuidsInOtherCommits({
       tx,

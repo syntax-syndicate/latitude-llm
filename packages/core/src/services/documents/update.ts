@@ -28,7 +28,7 @@ export async function updateDocument(
   },
   trx = database,
 ): Promise<TypedResult<DocumentVersion, Error>> {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     const updatedDocData = Object.fromEntries(
       Object.entries({ path, content, deletedAt }).filter(
         ([_, v]) => v !== undefined,

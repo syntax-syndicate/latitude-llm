@@ -5,7 +5,7 @@ import { NotFoundError, Result, Transaction } from '../../lib'
 import { apiKeys } from '../../schema'
 
 export function touchApiKey(id: number, db = database) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .update(apiKeys)
       .set({

@@ -22,7 +22,7 @@ export default function setupService({
   name: string
   companyName: string
 }): PromisedResult<SessionData> {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const userResult = await createUser(
       { email, name, confirmedAt: new Date() },
       tx,

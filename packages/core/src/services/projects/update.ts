@@ -10,7 +10,7 @@ export async function updateProject(
   values: Partial<Project>,
   db = database,
 ) {
-  return Transaction.call<Project>(async (tx) => {
+  return Transaction.call<Project>(async ({ db: tx }) => {
     const updates = await tx
       .update(projects)
       .set(values)

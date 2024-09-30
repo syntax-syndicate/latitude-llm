@@ -32,7 +32,7 @@ export function connectEvaluations(
   db = database,
 ): PromisedResult<ConnectedEvaluation[], Error> {
   return Transaction.call(
-    async (tx): PromisedResult<ConnectedEvaluation[], Error> => {
+    async ({ db: tx }): PromisedResult<ConnectedEvaluation[], Error> => {
       const documentVersionsScope = new DocumentVersionsRepository(
         workspace.id,
         tx,

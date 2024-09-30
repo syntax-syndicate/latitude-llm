@@ -24,7 +24,7 @@ export async function createEvaluationResult(
   { evaluation, documentLog, providerLog, result }: CreateEvaluationResultProps,
   db = database,
 ) {
-  return Transaction.call<EvaluationResultDto>(async (trx) => {
+  return Transaction.call<EvaluationResultDto>(async ({ db: trx }) => {
     let table
     switch (evaluation.configuration.type) {
       case EvaluationResultableType.Boolean:

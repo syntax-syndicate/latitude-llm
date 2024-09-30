@@ -19,7 +19,7 @@ export async function updateConnectedEvaluation(
   },
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .update(connectedEvaluations)
       .set({

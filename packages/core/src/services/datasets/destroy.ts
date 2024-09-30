@@ -19,7 +19,7 @@ export async function destroyDataset(
   const deleteResult = await disk.delete(dataset.fileKey)
   if (deleteResult.error) return deleteResult
 
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .delete(datasets)
       .where(eq(datasets.id, dataset.id))

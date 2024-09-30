@@ -10,7 +10,7 @@ export const updateMembership = async (
   values: Partial<Membership>,
   db = database,
 ) => {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const updates = await tx
       .update(memberships)
       .set(values)

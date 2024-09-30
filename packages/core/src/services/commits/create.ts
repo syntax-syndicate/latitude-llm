@@ -20,7 +20,7 @@ export async function createCommit({
   }
   db?: Database
 }) {
-  return Transaction.call<Commit>(async (tx) => {
+  return Transaction.call<Commit>(async ({ db: tx, sideEffects }) => {
     const result = await tx
       .insert(commits)
       .values({
@@ -34,13 +34,15 @@ export async function createCommit({
       .returning()
     const createdCommit = result[0]
 
-    publisher.publishLater({
-      type: 'commitCreated',
-      data: {
-        commit: createdCommit!,
-        userEmail: user.email,
-        workspaceId: project.workspaceId,
-      },
+    sideEffects.push(async () => {
+      publisher.publishLater({
+        type: 'commitCreated',
+        data: {
+          commit: createdCommit!,
+          userEmail: user.email,
+          workspaceId: project.workspaceId,
+        },
+      })
     })
 
     return Result.ok(createdCommit!)

@@ -53,7 +53,7 @@ export async function createProviderLog(
   }: CreateProviderLogProps,
   db = database,
 ) {
-  return await Transaction.call<ProviderLog>(async (trx) => {
+  return await Transaction.call<ProviderLog>(async ({ db: trx }) => {
     const cost =
       costInMillicents ??
       Math.floor(

@@ -8,7 +8,7 @@ export function destroyEvaluationTemplate(
   { id }: { id: number },
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .delete(evaluationTemplates)
       .where(eq(evaluationTemplates.id, id))

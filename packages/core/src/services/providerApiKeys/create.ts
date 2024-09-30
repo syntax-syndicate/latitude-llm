@@ -15,7 +15,7 @@ export function createProviderApiKey(
   { workspace, provider, token, name, author }: Props,
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .insert(providerApiKeys)
       .values({

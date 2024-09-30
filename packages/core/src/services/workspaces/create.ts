@@ -16,7 +16,7 @@ export async function createWorkspace(
   },
   db = database,
 ) {
-  return Transaction.call<Workspace>(async (tx) => {
+  return Transaction.call<Workspace>(async ({ db: tx }) => {
     const insertedWorkspaces = await tx
       .insert(workspaces)
       .values({ name, creatorId: user.id, createdAt })

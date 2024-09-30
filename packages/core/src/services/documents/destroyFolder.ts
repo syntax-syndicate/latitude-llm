@@ -16,7 +16,7 @@ export async function destroyFolder({
   workspaceId: number
   db?: Database
 }) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const assertResult = assertCommitIsDraft(commit)
     assertResult.unwrap()
 

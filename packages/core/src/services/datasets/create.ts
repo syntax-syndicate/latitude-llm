@@ -45,7 +45,7 @@ export const createDataset = async (
 
   const { headers, rowCount } = readCsvResult.value
 
-  return Transaction.call(async (trx) => {
+  return Transaction.call(async ({ db: trx }) => {
     const inserts = await trx
       .insert(datasets)
       .values({

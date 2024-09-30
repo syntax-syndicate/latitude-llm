@@ -1,6 +1,6 @@
 import { Membership, User } from '../../browser'
-import { database } from '../../client'
 import { Result, Transaction } from '../../lib'
+import { ITransaction } from '../../lib/Transaction'
 import { updateMembership } from '../memberships'
 import { updateUser } from '../users'
 
@@ -12,9 +12,9 @@ export function acceptInvitation(
     membership: Membership
     user: User
   },
-  db = database,
+  db: ITransaction,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const date = new Date()
     if (!user.confirmedAt) {
       await updateUser(user, { confirmedAt: date }).then((r) => r.unwrap())

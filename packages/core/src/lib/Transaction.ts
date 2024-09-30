@@ -1,6 +1,4 @@
 import { env } from '@latitude-data/env'
-import type { ExtractTablesWithRelations } from 'drizzle-orm'
-import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core'
 import { DatabaseError } from 'pg'
 
 import { database, Database } from '../client'
@@ -9,14 +7,15 @@ import { ConflictError, UnprocessableEntityError } from './errors'
 import { ErrorResult, Result, TypedResult } from './Result'
 
 export type DBSchema = typeof schema
-export type ITransaction<T extends DBSchema = DBSchema> = PgTransaction<
-  PgQueryResultHKT,
-  T,
-  ExtractTablesWithRelations<typeof schema>
->
 export type PromisedResult<F, E extends Error = Error> = Promise<
   TypedResult<F, E>
 >
+
+export type ITransaction = {
+  db: Database
+  depth: number
+  sideEffects: Array<() => void>
+}
 
 const DB_ERROR_CODES = {
   UNIQUE_VIOLATION: '23505',
@@ -26,19 +25,45 @@ const DB_ERROR_CODES = {
 
 export default class Transaction {
   public static async call<ResultType>(
-    callback: (trx: Database) => PromisedResult<ResultType>,
-    db = database,
+    callback: (trx: ITransaction) => PromisedResult<ResultType>,
+    transactionInstance: ITransaction = {
+      db: database,
+      depth: 1,
+      sideEffects: [],
+    },
   ): PromisedResult<ResultType> {
-    return new Transaction().call(callback, db)
+    return new Transaction().call(callback, transactionInstance)
   }
 
   public async call<ResultType>(
-    callback: (trx: Database) => PromisedResult<ResultType>,
-    db = database,
+    callback: ({
+      db,
+      depth,
+      sideEffects,
+    }: {
+      db: Database
+      depth: number
+      sideEffects: Array<() => void>
+    }) => PromisedResult<ResultType>,
+    { db, depth = 1, sideEffects = [] }: ITransaction = {
+      db: database,
+      sideEffects: [],
+      depth: 1,
+    },
   ): PromisedResult<ResultType> {
     try {
       let result: TypedResult<ResultType, Error>
-      await db.transaction(async (trx) => (result = await callback(trx)))
+      await db.transaction(
+        async (trx) =>
+          (result = await callback({ db: trx, depth, sideEffects })),
+      )
+      depth -= 1
+      if (depth === 0) {
+        sideEffects.forEach(
+          (sideEffect: (result: TypedResult<ResultType, Error>) => void) =>
+            sideEffect(result),
+        )
+      }
 
       return result!
     } catch (error) {

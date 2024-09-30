@@ -13,7 +13,7 @@ import { commits } from '../../schema'
 import { recomputeChanges } from '../documents'
 
 export async function mergeCommit(commit: Commit, db = database) {
-  return Transaction.call<Commit>(async (tx) => {
+  return Transaction.call<Commit>(async ({ db: tx }) => {
     const mergedAt = new Date()
     const otherCommits = await tx
       .select()

@@ -5,7 +5,7 @@ import { NotFoundError, Result, Transaction } from '../../lib'
 import { providerApiKeys } from '../../schema'
 
 export function touchProviderApiKey(id: number, db = database) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .update(providerApiKeys)
       .set({

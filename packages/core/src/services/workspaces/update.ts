@@ -11,7 +11,7 @@ export async function updateWorkspace({
   workspace: Workspace
   name: string
 }) {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     const updated = await tx
       .update(workspaces)
       .set({ name })

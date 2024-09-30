@@ -17,7 +17,7 @@ export const createMembership = async (
   } & Partial<Omit<Membership, 'userId' | 'workspaceId'>>,
   db = database,
 ) => {
-  const result = await Transaction.call(async (tx) => {
+  const result = await Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .insert(memberships)
       .values({ userId: user.id, workspaceId: workspace.id, ...rest })

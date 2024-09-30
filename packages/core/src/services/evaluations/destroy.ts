@@ -1,15 +1,15 @@
 import { eq } from 'drizzle-orm'
 
 import { Evaluation } from '../../browser'
-import { database } from '../../client'
 import { Result, Transaction } from '../../lib'
+import { ITransaction } from '../../lib/Transaction'
 import { evaluations } from '../../schema'
 
 export function destroyEvaluation(
   { evaluation }: { evaluation: Evaluation },
-  db = database,
+  db?: ITransaction,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .delete(evaluations)
       .where(eq(evaluations.id, evaluation.id))

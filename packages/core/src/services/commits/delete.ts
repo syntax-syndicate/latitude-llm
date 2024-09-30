@@ -9,7 +9,7 @@ import { commits } from '../../schema'
 export async function deleteCommitDraft(commit: Commit, db = database) {
   assertCommitIsDraft(commit).unwrap()
 
-  return Transaction.call<Commit>(async (tx) => {
+  return Transaction.call<Commit>(async ({ db: tx }) => {
     const deleted = await tx
       .delete(commits)
       .where(eq(commits.id, commit.id))

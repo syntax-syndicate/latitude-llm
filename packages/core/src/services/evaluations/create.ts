@@ -47,7 +47,7 @@ ${meta.prompt}
 `.trim()
     : meta.prompt
 
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     let metadataTable
     switch (type) {
       case EvaluationMetadataType.LlmAsJudge:

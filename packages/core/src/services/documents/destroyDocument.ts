@@ -13,7 +13,7 @@ export async function destroyDocument({
   commit: Commit
   db?: Database
 }) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const assertResult = assertCommitIsDraft(commit)
     if (assertResult.error) return assertResult
 

@@ -11,7 +11,7 @@ export function createDefaultEvaluationTemplates(db = database) {
     text: EvaluationResultableType.Text,
   }
 
-  Transaction.call(async (tx) => {
+  Transaction.call(async ({ db: tx }) => {
     const promises = evaluationTemplates.map((template) => {
       const type = mapTypes[
         template.type as keyof typeof mapTypes

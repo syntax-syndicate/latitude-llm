@@ -10,7 +10,7 @@ export async function createEvaluationTemplateCategory(
   { name }: Props,
   db = database,
 ) {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .insert(evaluationTemplateCategories)
       .values({

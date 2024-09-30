@@ -20,7 +20,7 @@ export async function createEvaluationTemplate(
   { name, description, categoryId, categoryName, configuration, prompt }: Props,
   db = database,
 ) {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     let category
 
     if (categoryId) {

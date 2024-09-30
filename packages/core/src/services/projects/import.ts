@@ -38,7 +38,7 @@ export async function importDefaultProject(
 
   if (defaultDocuments.error) return defaultDocuments
 
-  return Transaction.call<Project>(async (tx) => {
+  return Transaction.call<Project>(async ({ db: tx }) => {
     const { project, commit } = await createProject(
       {
         workspace,

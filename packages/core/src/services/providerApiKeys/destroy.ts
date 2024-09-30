@@ -9,7 +9,7 @@ export function destroyProviderApiKey(
   providerApiKey: ProviderApiKey,
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .delete(providerApiKeys)
       .where(eq(providerApiKeys.id, providerApiKey.id))

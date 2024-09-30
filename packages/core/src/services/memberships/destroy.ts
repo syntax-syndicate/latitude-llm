@@ -6,7 +6,7 @@ import { Result, Transaction } from '../../lib'
 import { memberships } from '../../schema'
 
 export function destroyMembership(membership: Membership, db = database) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .delete(memberships)
       .where(eq(memberships.id, membership.id))

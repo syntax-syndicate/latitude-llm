@@ -18,7 +18,7 @@ export async function renameDocumentPaths(
   },
   db = database,
 ): Promise<TypedResult<DocumentVersion[], Error>> {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     if (commit.mergedAt !== null) {
       return Result.error(new BadRequestError('Cannot modify a merged commit'))
     }

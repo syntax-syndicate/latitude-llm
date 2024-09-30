@@ -96,7 +96,7 @@ async function replaceCommitChanges(
   tx = database,
 ): Promise<TypedResult<DocumentVersion[], Error>> {
   const commitId = commit.id
-  return Transaction.call<DocumentVersion[]>(async (trx) => {
+  return Transaction.call<DocumentVersion[]>(async ({ db: trx }) => {
     await trx
       .delete(documentVersions)
       .where(eq(documentVersions.commitId, commitId))

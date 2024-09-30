@@ -5,7 +5,7 @@ import { Result, Transaction } from '../../lib'
 import { magicLinkTokens } from '../../schema'
 
 export async function confirmMagicLinkToken(token: string, db = database) {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     const magicLinkToken = await tx
       .update(magicLinkTokens)
       .set({ expiredAt: new Date() })

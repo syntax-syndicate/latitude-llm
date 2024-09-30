@@ -10,7 +10,7 @@ export const updateUser = async (
   values: Partial<User>,
   db = database,
 ) => {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const updates = await tx
       .update(users)
       .set(values)

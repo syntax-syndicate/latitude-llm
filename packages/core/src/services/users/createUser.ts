@@ -15,7 +15,7 @@ export async function createUser(
   },
   db = database,
 ) {
-  return Transaction.call<User>(async (trx) => {
+  return Transaction.call<User>(async ({ db: trx }) => {
     const inserts = await trx
       .insert(users)
       .values({

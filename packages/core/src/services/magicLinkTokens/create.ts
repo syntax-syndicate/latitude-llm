@@ -8,7 +8,7 @@ export async function createMagicLinkToken(
   { user }: { user: User },
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const magicLinkToken = await tx
       .insert(magicLinkTokens)
       .values({ userId: user.id })

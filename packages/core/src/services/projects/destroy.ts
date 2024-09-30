@@ -5,7 +5,7 @@ import { Result, Transaction } from '../../lib'
 import { projects } from '../../schema'
 
 export function destroyProject({ project }: { project: Project }) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const updated = await tx
       .update(projects)
       .set({ deletedAt: new Date() })

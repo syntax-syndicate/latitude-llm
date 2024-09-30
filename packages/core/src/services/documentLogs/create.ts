@@ -34,7 +34,7 @@ export async function createDocumentLog(
   }: CreateDocumentLogProps,
   db = database,
 ) {
-  return Transaction.call<DocumentLog>(async (trx) => {
+  return Transaction.call<DocumentLog>(async ({ db: trx }) => {
     const inserts = await trx
       .insert(documentLogs)
       .values({

@@ -7,7 +7,7 @@ export function createApiKey(
   { name, workspace }: { name?: string; workspace: Workspace },
   db = database,
 ) {
-  return Transaction.call(async (tx) => {
+  return Transaction.call(async ({ db: tx }) => {
     const result = await tx
       .insert(apiKeys)
       .values({ workspaceId: workspace.id, name })

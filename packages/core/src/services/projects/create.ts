@@ -19,7 +19,7 @@ export async function createProject(
   },
   db = database,
 ) {
-  return Transaction.call<{ project: Project; commit: Commit }>(async (tx) => {
+  return Transaction.call<{ project: Project; commit: Commit }>(async ({ db: tx }) => {
     const project = (
       await tx
         .insert(projects)

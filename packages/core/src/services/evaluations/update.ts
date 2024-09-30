@@ -22,7 +22,7 @@ export async function updateEvaluation(
   },
   trx = database,
 ) {
-  return await Transaction.call(async (tx) => {
+  return await Transaction.call(async ({ db: tx }) => {
     let updatedEvals = [omit(evaluation, 'metadata')]
     let values = compactObject({ name, description })
     if (!isEmpty(values)) {
