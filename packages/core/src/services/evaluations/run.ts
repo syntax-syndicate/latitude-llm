@@ -123,6 +123,7 @@ export const runEvaluation = async (
         documentLogUuid: documentLog.uuid,
         providerLogUuid: response.providerLog.uuid,
         response,
+        workspaceId: evaluation.workspaceId,
       },
     })
   })

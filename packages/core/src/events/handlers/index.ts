@@ -1,12 +1,16 @@
 import {
   ChainCallResponse,
   Commit,
+  Dataset,
   DocumentLog,
+  DocumentVersion,
+  Evaluation,
   LogSources,
   MagicLinkToken,
   Membership,
   Message,
   Project,
+  ProviderApiKey,
   ProviderLog,
   User,
   Workspace,
@@ -20,7 +24,7 @@ import { sendMagicLinkJob } from './sendMagicLinkHandler'
 
 type LatitudeEventGeneric<
   U extends keyof typeof EventHandlers,
-  T extends Record<string, unknown>,
+  T extends { userEmail?: string; workspaceId?: number; [key: string]: any },
 > = {
   type: U
   data: T
@@ -34,12 +38,15 @@ export type EventHandler<E extends LatitudeEvent> = ({
 
 export type MagicLinkTokenCreated = LatitudeEventGeneric<
   'magicLinkTokenCreated',
-  MagicLinkToken
+  MagicLinkToken & { userEmail: string }
 >
-export type UserCreatedEvent = LatitudeEventGeneric<'userCreated', User>
+export type UserCreatedEvent = LatitudeEventGeneric<
+  'userCreated',
+  User & { workspaceId: number; userEmail: string }
+>
 export type MembershipCreatedEvent = LatitudeEventGeneric<
   'membershipCreated',
-  Membership & { authorId?: string }
+  Membership & { authorId?: string; userEmail?: string }
 >
 export type EvaluationRunEvent = LatitudeEventGeneric<
   'evaluationRun',
@@ -49,6 +56,7 @@ export type EvaluationRunEvent = LatitudeEventGeneric<
     documentLogUuid: string
     providerLogUuid: string
     response: ChainCallResponse
+    workspaceId: number
   }
 >
 export type DocumentRunEvent = LatitudeEventGeneric<
@@ -103,6 +111,8 @@ export type WorkspaceCreatedEvent = LatitudeEventGeneric<
   {
     workspace: Workspace
     user: User
+    userEmail: string
+    workspaceId: number
   }
 >
 
@@ -111,12 +121,96 @@ export type ProjectCreatedEvent = LatitudeEventGeneric<
   {
     project: Project
     commit: Commit
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type CommitCreatedEvent = LatitudeEventGeneric<
+  'commitCreated',
+  {
+    commit: Commit
+    userEmail: string
+    workspaceId: number
   }
 >
 
 export type DocumentLogCreatedEvent = LatitudeEventGeneric<
   'documentLogCreated',
   DocumentLog
+>
+
+export type EvaluationCreatedEvent = LatitudeEventGeneric<
+  'evaluationCreated',
+  {
+    evaluation: Evaluation
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type DatasetCreatedEvent = LatitudeEventGeneric<
+  'datasetCreated',
+  {
+    dataset: Dataset
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type ProviderApiKeyCreatedEvent = LatitudeEventGeneric<
+  'providerApiKeyCreated',
+  {
+    providerApiKey: ProviderApiKey
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type UserInvitedEvent = LatitudeEventGeneric<
+  'userInvited',
+  {
+    invited: User
+    invitee: User
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type EvaluationsConnectedEvent = LatitudeEventGeneric<
+  'evaluationsConnected',
+  {
+    evaluations: Partial<Evaluation>[] // it includes the basic stuff
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type CommitPublishedEvent = LatitudeEventGeneric<
+  'commitPublished',
+  {
+    commit: Commit
+    userEmail: string
+    workspaceId: number
+  }
+>
+
+export type BatchEvaluationRunEvent = LatitudeEventGeneric<
+  'batchEvaluationRun',
+  {
+    evaluationId: number
+    workspaceId: number
+    userEmail: string
+  }
+>
+
+export type DocumentCreatedEvent = LatitudeEventGeneric<
+  'documentCreated',
+  {
+    document: DocumentVersion
+    workspaceId: number
+    userEmail: string
+  }
 >
 
 export type LatitudeEvent =
@@ -130,7 +224,15 @@ export type LatitudeEvent =
   | WorkspaceCreatedEvent
   | ProjectCreatedEvent
   | DocumentLogCreatedEvent
-
+  | EvaluationCreatedEvent
+  | DatasetCreatedEvent
+  | ProviderApiKeyCreatedEvent
+  | UserInvitedEvent
+  | CommitCreatedEvent
+  | CommitPublishedEvent
+  | EvaluationsConnectedEvent
+  | BatchEvaluationRunEvent
+  | DocumentCreatedEvent
 export interface IEventsHandlers {
   magicLinkTokenCreated: EventHandler<MagicLinkTokenCreated>[]
   membershipCreated: EventHandler<MembershipCreatedEvent>[]
@@ -142,17 +244,35 @@ export interface IEventsHandlers {
   workspaceCreated: EventHandler<WorkspaceCreatedEvent>[]
   projectCreated: EventHandler<ProjectCreatedEvent>[]
   documentLogCreated: EventHandler<DocumentLogCreatedEvent>[]
+  evaluationCreated: EventHandler<EvaluationCreatedEvent>[]
+  datasetCreated: EventHandler<DatasetCreatedEvent>[]
+  providerApiKeyCreated: EventHandler<ProviderApiKeyCreatedEvent>[]
+  userInvited: EventHandler<UserInvitedEvent>[]
+  commitCreated: EventHandler<CommitCreatedEvent>[]
+  commitPublished: EventHandler<CommitPublishedEvent>[]
+  evaluationsConnected: EventHandler<EvaluationsConnectedEvent>[]
+  batchEvaluationRun: EventHandler<BatchEvaluationRunEvent>[]
+  documentCreated: EventHandler<DocumentCreatedEvent>[]
 }
 
 export const EventHandlers: IEventsHandlers = {
+  evaluationCreated: [],
+  aiProviderCallCompleted: [],
+  documentLogCreated: [runLiveEvaluationsJob],
+  documentRun: [createDocumentLogJob],
+  evaluationRun: [createEvaluationResultJob],
   magicLinkTokenCreated: [sendMagicLinkJob],
   membershipCreated: [sendInvitationToUserJob],
-  userCreated: [],
-  evaluationRun: [createEvaluationResultJob],
-  documentRun: [createDocumentLogJob],
-  providerLogCreated: [],
-  aiProviderCallCompleted: [],
-  workspaceCreated: [],
   projectCreated: [],
-  documentLogCreated: [runLiveEvaluationsJob],
+  providerLogCreated: [],
+  userCreated: [],
+  workspaceCreated: [],
+  datasetCreated: [],
+  providerApiKeyCreated: [],
+  userInvited: [],
+  commitCreated: [],
+  commitPublished: [],
+  evaluationsConnected: [],
+  batchEvaluationRun: [],
+  documentCreated: [],
 } as const
