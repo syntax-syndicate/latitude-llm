@@ -1,97 +1,64 @@
-import { Message } from '@latitude-data/compiler'
-
+import { objectToString, StreamType } from '../../../browser'
+import { AIReturn } from '../../ai'
 import {
-  ChainStepResponse,
-  LogSources,
-  ProviderApiKey,
-  StreamType,
-  Workspace,
-} from '../../../browser'
-import { StreamCommonData } from '../../../events/events'
-import { generateUUIDIdentifier } from '../../../lib'
-import { AIReturn, PartialConfig } from '../../ai'
-import { processStreamObject } from './processStreamObject'
-import { processStreamText } from './processStreamText'
+  CoreAssistantMessage,
+  CoreToolMessage,
+  LanguageModelResponseMetadata,
+} from 'ai'
 
-async function buildCommonData({
+export async function buildChainStepResponse({
   aiResult,
-  startTime,
-  workspace,
-  source,
-  apiProvider,
-  config,
-  messages,
   errorableUuid,
 }: {
   aiResult: Awaited<AIReturn<StreamType>>
-  startTime: number
-  workspace: Workspace
-  source: LogSources
-  apiProvider: ProviderApiKey
-  config: PartialConfig
-  messages: Message[]
   errorableUuid?: string
-}): Promise<StreamCommonData> {
-  const endTime = Date.now()
-  const duration = endTime - startTime
+}) {
+  if (aiResult.type === 'text') {
+    return buildStepTextResponse({ aiResult, errorableUuid })
+  }
+
+  return buildObjectStepResponse({ aiResult, errorableUuid })
+}
+
+async function buildStepTextResponse({
+  aiResult,
+  errorableUuid,
+}: {
+  aiResult: Awaited<AIReturn<'text'>>
+  errorableUuid?: string
+}) {
+  const response = (await aiResult.data
+    .response) as LanguageModelResponseMetadata & {
+    messages: (CoreAssistantMessage | CoreToolMessage)[]
+  }
+
   return {
-    uuid: generateUUIDIdentifier(),
-
-    // AI Provider Data
-    workspaceId: workspace.id,
-    source: source,
-    providerId: apiProvider.id,
-    providerType: apiProvider.provider,
-    // FIXME: This should be polymorphic
-    // https://github.com/latitude-dev/latitude-llm/issues/229
+    streamType: aiResult.type,
     documentLogUuid: errorableUuid,
-
-    // AI
-    duration,
-    generatedAt: new Date(),
-    model: config.model,
-    config: config,
-    messages: messages,
+    text: await aiResult.data.text,
     usage: await aiResult.data.usage,
+    output: 'messages' in response ? response.messages : [],
+    toolCalls: (await aiResult.data.toolCalls).map((t) => ({
+      id: t.toolCallId,
+      name: t.toolName,
+      arguments: t.args,
+    })),
   }
 }
 
-/**
- * This function is responsible for processing the AI response
- */
-export async function processResponse({
+async function buildObjectStepResponse({
   aiResult,
-  startTime,
-  workspace,
-  source,
-  apiProvider,
-  config,
-  messages,
   errorableUuid,
 }: {
-  aiResult: Awaited<AIReturn<StreamType>>
-  startTime: number
-  workspace: Workspace
-  source: LogSources
-  apiProvider: ProviderApiKey
-  config: PartialConfig
-  messages: Message[]
   errorableUuid?: string
-}): Promise<ChainStepResponse<StreamType>> {
-  const commonData = await buildCommonData({
-    aiResult,
-    startTime,
-    workspace,
-    source,
-    apiProvider,
-    config,
-    messages,
-    errorableUuid,
-  })
-
-  if (aiResult.type === 'text') {
-    return processStreamText({ aiResult, commonData })
+  aiResult: Awaited<AIReturn<'object'>>
+}) {
+  const object = await aiResult.data.object
+  return {
+    streamType: aiResult.type,
+    documentLogUuid: errorableUuid,
+    usage: await aiResult.data.usage,
+    text: objectToString(object),
+    object,
   }
-
-  return processStreamObject({ aiResult, commonData })
 }

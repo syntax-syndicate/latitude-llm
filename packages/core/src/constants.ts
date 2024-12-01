@@ -1,15 +1,15 @@
+import { Message as CompilerMessage } from '@latitude-data/compiler'
+
 import {
-  type AssistantMessage,
-  type Message as CompilerMessage,
-  type SystemMessage,
-  type ToolCall,
-  type UserMessage,
-} from '@latitude-data/compiler'
-import {
+  CoreAssistantMessage,
+  CoreSystemMessage,
   CoreTool,
+  CoreToolMessage,
+  CoreUserMessage,
   LanguageModelUsage,
   ObjectStreamPart,
   TextStreamPart,
+  ToolCallPart,
 } from 'ai'
 import { z } from 'zod'
 
@@ -53,20 +53,21 @@ export const HELP_CENTER = {
 export type StreamType = 'object' | 'text'
 export type ChainStepTextResponse = {
   streamType: 'text'
-  text: string
-  usage: LanguageModelUsage
-  toolCalls: ToolCall[]
   documentLogUuid?: string
+  output: (CoreAssistantMessage | CoreToolMessage)[]
   providerLog?: ProviderLog
+  text: string
+  toolCalls: []
+  usage: LanguageModelUsage
 }
 
 export type ChainStepObjectResponse = {
   streamType: 'object'
+  documentLogUuid?: string
   object: any
+  providerLog?: ProviderLog
   text: string
   usage: LanguageModelUsage
-  documentLogUuid?: string
-  providerLog?: ProviderLog
 }
 
 export type ChainStepResponse<T extends StreamType> = T extends 'text'
@@ -252,27 +253,27 @@ export type SerializedConversation = {
   first: Message | null
   last: Message | null
   user: {
-    all: UserMessage[]
-    first: UserMessage | null
-    last: UserMessage | null
+    all: CoreUserMessage[]
+    first: CoreUserMessage | null
+    last: CoreUserMessage | null
   }
   system: {
-    all: SystemMessage[]
-    first: SystemMessage | null
-    last: SystemMessage | null
+    all: CoreSystemMessage[]
+    first: CoreSystemMessage | null
+    last: CoreSystemMessage | null
   }
   assistant: {
-    all: AssistantMessage[]
-    first: AssistantMessage | null
-    last: AssistantMessage | null
+    all: CoreAssistantMessage[]
+    first: CoreAssistantMessage | null
+    last: CoreAssistantMessage | null
   }
 }
 
 export type SerializedProviderLog = {
   messages: SerializedConversation
   context: string
-  toolCalls: ToolCall[]
-  response: string | null
+  toolCalls: ToolCallPart[]
+  response: string | (CoreAssistantMessage | CoreToolMessage)[] | null
   config: object | null
   duration: number | null
   cost: number

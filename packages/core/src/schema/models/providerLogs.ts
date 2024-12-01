@@ -18,6 +18,7 @@ import { latitudeSchema } from '../db-schema'
 import { apiKeys } from '../models/apiKeys'
 import { timestamps } from '../schemaHelpers'
 import { providerApiKeys } from './providerApiKeys'
+import { CoreAssistantMessage, CoreToolMessage } from 'ai'
 
 export const logSourcesEnum = latitudeSchema.enum('log_source', [
   LogSources.Playground,
@@ -45,6 +46,9 @@ export const providerLogs = latitudeSchema.table(
     finishReason: varchar('finish_reason').default('stop'),
     config: json('config').$type<PartialConfig>(),
     messages: json('messages').$type<Message[]>().notNull(),
+    output: jsonb('output').$type<
+      (CoreAssistantMessage | CoreToolMessage)[] | null
+    >(),
     responseObject: jsonb('response_object').$type<unknown>(),
     responseText: text('response_text').$type<string>(),
     toolCalls: json('tool_calls').$type<ToolCall[]>().notNull().default([]),

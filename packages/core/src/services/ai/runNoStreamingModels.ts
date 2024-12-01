@@ -63,6 +63,7 @@ export async function runNoStreamingModels({
         fullStream: fullStream as any,
         object: Promise.resolve(result.object),
         usage: Promise.resolve(result.usage),
+        response: Promise.resolve(result.response),
         providerName: provider,
       },
     })
@@ -107,6 +108,7 @@ export async function runNoStreamingModels({
       usage: Promise.resolve(result.usage),
       toolCalls: Promise.resolve(toolCalls),
       providerName: provider,
+      response: Promise.resolve(result.response),
     },
   })
 }

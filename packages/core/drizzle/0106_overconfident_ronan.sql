@@ -1,0 +1,1 @@
+ALTER TABLE "latitude"."provider_logs" RENAME COLUMN "response" TO "output";

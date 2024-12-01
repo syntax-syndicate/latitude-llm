@@ -1,10 +1,12 @@
 import { ProviderLog } from '../../browser'
 
+import { CoreAssistantMessage, CoreToolMessage } from 'ai'
+
 export function buildProviderLogResponse(providerLog: ProviderLog) {
-  return (
+  return (providerLog.output ||
     providerLog.responseText ||
-    (providerLog.responseObject
-      ? JSON.stringify(providerLog.responseObject)
-      : '')
-  )
+    (providerLog.responseObject ? providerLog.responseObject : null)) as
+    | string
+    | (CoreAssistantMessage | CoreToolMessage)[]
+    | null
 }

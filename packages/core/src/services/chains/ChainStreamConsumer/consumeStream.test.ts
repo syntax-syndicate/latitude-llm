@@ -1,5 +1,12 @@
 import { RunErrorCodes } from '@latitude-data/constants/errors'
-import { CoreTool, LanguageModelUsage, TextStreamPart } from 'ai'
+import {
+  CoreAssistantMessage,
+  CoreTool,
+  CoreToolMessage,
+  LanguageModelResponseMetadata,
+  LanguageModelUsage,
+  TextStreamPart,
+} from 'ai'
 import { describe, expect, it } from 'vitest'
 
 import { ChainEvent, Providers, StreamType } from '../../../constants'
@@ -49,6 +56,13 @@ function buildFakeChain({
   const result = {
     type: 'text' as 'text',
     data: {
+      response: new Promise<
+        LanguageModelResponseMetadata & {
+          messages: (CoreAssistantMessage | CoreToolMessage)[]
+        }
+      >((resolve) =>
+        resolve({ messages: [], id: '1', timestamp: new Date(), modelId: '1' }),
+      ),
       toolCalls: [] as any,
       text: new Promise<string>(() => 'text'),
       usage: new Promise<LanguageModelUsage>(() => DEFAULT_USAGE),

@@ -111,12 +111,11 @@ export function extractMessageMetadata({
   message: Message
   provider: Providers
 }): MessageWithMetadata {
-  const { role, content, toolCalls, ...rest } = message
+  const { role, content, ...rest } = message
 
   let common = removeUndefinedValues({
     role,
     content,
-    toolCalls,
   }) as Message & { name?: string }
 
   if (Object.keys(rest).length === 0) return common

@@ -14,7 +14,7 @@ import * as factories from '../../tests/factories'
 import * as aiModule from '../ai'
 import { setCachedResponse } from '../commits/promptCache'
 import * as chainValidatorModule from './ChainValidator'
-import * as saveOrPublishProviderLogsModule from './ProviderProcessor/saveOrPublishProviderLogs'
+import * as createProviderLogModule from '../providerLogs/create'
 import { runChain } from './run'
 
 // Mock other dependencies
@@ -632,6 +632,7 @@ describe('runChain', () => {
         response: {
           streamType: 'text',
           text: 'cached response',
+          output: [],
           usage: {
             promptTokens: 0,
             completionTokens: 0,
@@ -649,14 +650,14 @@ describe('runChain', () => {
         errorableType: ErrorableEntity.DocumentLog,
       })
       const spy = vi.spyOn(aiModule, 'ai')
-      const saveOrPublishProviderLogSpy = vi
-        .spyOn(saveOrPublishProviderLogsModule, 'saveOrPublishProviderLogs')
+      const createProviderLogSpy = vi
+        .spyOn(createProviderLogModule, 'createProviderLog')
         // @ts-expect-error - mock
         .mockResolvedValue({ id: 'fake-provider-log-id' })
       const res = await run.response
 
       expect(spy).not.toHaveBeenCalled()
-      expect(saveOrPublishProviderLogSpy).toHaveBeenCalledTimes(1)
+      expect(createProviderLogSpy).toHaveBeenCalledTimes(1)
       expect(res.value).toEqual(
         expect.objectContaining({
           text: 'cached response',
@@ -679,6 +680,7 @@ describe('runChain', () => {
           response: {
             streamType: 'text',
             text: 'cached response',
+            output: [],
             usage: {
               promptTokens: 0,
               completionTokens: 0,
@@ -737,6 +739,7 @@ describe('runChain', () => {
           conversation,
           response: {
             streamType: 'text',
+            output: [],
             text: 'cached response',
             usage: {
               promptTokens: 0,

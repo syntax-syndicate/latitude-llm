@@ -18,7 +18,9 @@ export function formatConversation(
   if ((providerLog as ProviderLogDto).response) {
     messages.push({
       role: MessageRole.assistant,
-      content: (providerLog as ProviderLogDto).response,
+      content: (providerLog as ProviderLogDto).response
+        ? JSON.stringify((providerLog as ProviderLogDto).response)
+        : '',
       toolCalls: providerLog.toolCalls,
     })
   } else if ((providerLog as ProviderLog).responseText) {

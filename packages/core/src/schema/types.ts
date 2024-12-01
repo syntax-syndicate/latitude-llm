@@ -29,6 +29,7 @@ import { sessions } from './models/sessions'
 import { subscriptions } from './models/subscriptions'
 import { users } from './models/users'
 import { workspaces } from './models/workspaces'
+import { CoreAssistantMessage, CoreToolMessage } from 'ai'
 
 // Model types are out of schema files to be able to share with NextJS webpack bundler
 // otherwise, it will throw an error.
@@ -186,7 +187,7 @@ export type EvaluationResultDto = Omit<EvaluationResult, 'providerLogId'> & {
 export type ProviderLogDto = Omit<
   ProviderLog,
   'responseText' | 'responseObject'
-> & { response: string }
+> & { response: string | (CoreAssistantMessage | CoreToolMessage)[] | null }
 
 export type ClaimedRewardWithUserInfo = ClaimedReward & {
   workspaceName: string | null

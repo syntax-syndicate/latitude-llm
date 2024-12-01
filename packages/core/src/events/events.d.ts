@@ -1,4 +1,4 @@
-import { LanguageModelUsage } from 'ai'
+import { CoreAssistantMessage, CoreToolMessage, LanguageModelUsage } from 'ai'
 
 import type {
   ChainStepResponse,
@@ -30,7 +30,6 @@ export type Events =
   | 'evaluationRun'
   | 'documentRun'
   | 'providerLogCreated'
-  | 'aiProviderCallCompleted'
   | 'workspaceCreated'
   | 'projectCreated'
   | 'documentLogCreated'
@@ -128,6 +127,7 @@ export type StreamCommonData = {
   model: string
   config: PartialConfig
   messages: Message[]
+  output: (CoreAssistantMessage | CoreToolMessage)[]
   usage: LanguageModelUsage
   duration: number
 }
@@ -143,17 +143,6 @@ type StreamTextData = {
 type StreamObjectData = {
   responseObject: unknown
 }
-export type AIProviderCallCompletedData<T extends StreamType> = T extends 'text'
-  ? StreamCommonData & StreamTextData & { streamType: 'text' }
-  : T extends 'object'
-    ? StreamCommonData & StreamObjectData & { streamType: 'object' }
-    : never
-
-export type AIProviderCallCompletedEvent = LatitudeEventGeneric<
-  'aiProviderCallCompleted',
-  AIProviderCallCompletedData<StreamType>
->
-
 export type WorkspaceCreatedEvent = LatitudeEventGeneric<
   'workspaceCreated',
   {
@@ -407,7 +396,6 @@ export type LatitudeEvent =
   | EvaluationRunEvent
   | DocumentRunEvent
   | ProviderLogCreatedEvent
-  | AIProviderCallCompletedEvent
   | WorkspaceCreatedEvent
   | ProjectCreatedEvent
   | DocumentLogCreatedEvent
@@ -442,7 +430,6 @@ export interface IEventsHandlers {
   evaluationRun: EventHandler<EvaluationRunEvent>[]
   documentRun: EventHandler<DocumentRunEvent>[]
   providerLogCreated: EventHandler<ProviderLogCreatedEvent>[]
-  aiProviderCallCompleted: EventHandler<AIProviderCallCompletedEvent>[]
   workspaceCreated: EventHandler<WorkspaceCreatedEvent>[]
   projectCreated: EventHandler<ProjectCreatedEvent>[]
   documentLogCreated: EventHandler<DocumentLogCreatedEvent>[]

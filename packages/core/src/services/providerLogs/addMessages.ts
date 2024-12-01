@@ -26,11 +26,9 @@ import {
 } from '../chains/ChainStreamConsumer'
 import { consumeStream } from '../chains/ChainStreamConsumer/consumeStream'
 import { checkFreeProviderQuota } from '../chains/checkFreeProviderQuota'
-import { processResponse } from '../chains/ProviderProcessor'
-import {
-  buildProviderLogDto,
-  saveOrPublishProviderLogs,
-} from '../chains/ProviderProcessor/saveOrPublishProviderLogs'
+import { buildChainStepResponse } from '../chains/ProviderProcessor'
+import { buildProviderLogDto } from '../chains/ProviderProcessor/saveProviderLog'
+import { createProviderLog } from './create'
 
 export type ChainResponse<T extends StreamType> = TypedResult<
   ChainStepResponse<T>,
@@ -152,22 +150,15 @@ async function iterate({
       controller,
       result,
     })
-    const response = await processResponse({
+    const response = await buildChainStepResponse({
       aiResult: result,
-      workspace,
-      source,
       errorableUuid: documentLogUuid,
-      config,
-      apiProvider: provider,
-      messages,
-      startTime: stepStartTime,
     })
 
-    const providerLog = await saveOrPublishProviderLogs({
+    const providerLog = await createProviderLog({
       workspace,
-      streamType: result.type,
       finishReason: consumedStream.finishReason,
-      data: buildProviderLogDto({
+      ...buildProviderLogDto({
         workspace,
         source,
         provider,
@@ -176,8 +167,7 @@ async function iterate({
         errorableUuid: documentLogUuid,
         response,
       }),
-      saveSyncProviderLogs: true,
-    })
+    }).then((r) => r.unwrap())
 
     const text = parseResponseText(response)
     ChainStreamConsumer.chainCompleted({

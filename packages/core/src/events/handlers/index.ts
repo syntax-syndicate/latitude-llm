@@ -9,7 +9,6 @@ import { sendMagicLinkJob } from './sendMagicLinkHandler'
 import { sendReferralInvitationJob } from './sendReferralInvitation'
 
 export const EventHandlers: IEventsHandlers = {
-  aiProviderCallCompleted: [],
   batchEvaluationRun: [],
   claimReferralInvitations: [createClaimInvitationReferralJob],
   commitCreated: [],

@@ -35,7 +35,7 @@ type AIReturnObject = {
   type: 'object'
   data: Pick<
     StreamObjectResult<unknown, unknown, never>,
-    'fullStream' | 'object' | 'usage'
+    'fullStream' | 'object' | 'usage' | 'response'
   > & {
     providerName: Providers
   }
@@ -44,7 +44,7 @@ type AIReturnText = {
   type: 'text'
   data: Pick<
     StreamTextResult<Record<string, CoreTool<any, any>>>,
-    'fullStream' | 'text' | 'usage' | 'toolCalls'
+    'fullStream' | 'text' | 'usage' | 'toolCalls' | 'response'
   > & {
     providerName: Providers
   }
@@ -142,10 +142,7 @@ export async function ai({
       const result = await streamObject({
         ...commonOptions,
         schema: jsonSchema(schema),
-        // output is valid but depending on the type of schema
-        // there might be a mismatch (e.g you pass an object schema but the
-        // output is "array"). Not really an issue we need to defend atm.
-        output: output as any,
+        output: output as 'object',
       })
 
       return Result.ok({
@@ -155,6 +152,7 @@ export async function ai({
           object: result.object,
           usage: result.usage,
           providerName: provider,
+          response: result.response,
         },
       })
     }
@@ -164,6 +162,7 @@ export async function ai({
       type: 'text',
       data: {
         fullStream: result.fullStream,
+        response: result.response,
         text: result.text,
         usage: result.usage,
         toolCalls: result.toolCalls,
