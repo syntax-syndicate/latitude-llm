@@ -18,9 +18,6 @@ const nextConfig = {
     '@sentry/nextjs',
   ],
   experimental: {
-    turbo: {
-      treeShaking: true,
-    },
     // Dear developer,
     //
     // Unfortunately, our jobs packages uses some meta programming that relies

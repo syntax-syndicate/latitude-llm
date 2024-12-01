@@ -108,6 +108,7 @@ export default function Chat({
         const { event, data } = serverEvent
         if ('messages' in data) {
           setResponseStream(undefined)
+
           data.messages!.forEach(addMessageToConversation)
           messagesCount += data.messages!.length
         }

@@ -5,15 +5,13 @@ import {
 } from '$compiler/constants'
 import errors from '$compiler/error/errors'
 import { MessageTag } from '$compiler/parser/interfaces'
+import { Message, MessageContent, MessageRole } from '$compiler/types'
 import {
-  AssistantMessage,
-  Message,
-  MessageContent,
-  MessageRole,
-  SystemMessage,
-  ToolMessage,
-  UserMessage,
-} from '$compiler/types'
+  CoreAssistantMessage,
+  CoreSystemMessage,
+  CoreToolMessage,
+  CoreUserMessage,
+} from 'ai'
 
 import { CompileNodeContext } from '../../types'
 
@@ -66,7 +64,7 @@ export async function compile(
   const message = buildMessage(props as CompileNodeContext<MessageTag>, {
     role,
     attributes,
-    content: messageContent,
+    content: messageContent as MessageContent,
     toolCalls,
   })!
   addMessage(message)
@@ -75,7 +73,7 @@ export async function compile(
 type BuildProps<R extends MessageRole> = {
   role: R
   attributes: Record<string, unknown>
-  content: R extends MessageRole.user ? MessageContent[] : string
+  content: R extends MessageRole.user ? MessageContent : string
   toolCalls: ToolCallReference[]
 }
 
@@ -94,7 +92,7 @@ function buildMessage<R extends MessageRole>(
       ...attributes,
       role,
       content,
-    } as SystemMessage
+    } as CoreSystemMessage
   }
 
   if (role === MessageRole.user) {
@@ -103,7 +101,7 @@ function buildMessage<R extends MessageRole>(
       role,
       name: attributes.name ? String(attributes.name) : undefined,
       content,
-    } as UserMessage
+    } as CoreUserMessage
   }
 
   if (role === MessageRole.assistant) {
@@ -112,7 +110,7 @@ function buildMessage<R extends MessageRole>(
       role,
       toolCalls: toolCalls.map(({ value }) => value),
       content,
-    } as AssistantMessage
+    } as CoreAssistantMessage
   }
 
   if (role === MessageRole.tool) {
@@ -123,7 +121,7 @@ function buildMessage<R extends MessageRole>(
     return {
       role,
       content,
-    } as ToolMessage
+    } as CoreToolMessage
   }
 
   baseNodeError(errors.invalidMessageRole(role), node)

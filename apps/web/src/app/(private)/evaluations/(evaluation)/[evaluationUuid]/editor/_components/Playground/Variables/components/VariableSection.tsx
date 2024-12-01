@@ -4,6 +4,7 @@ import { Badge, Button, cn, Icon, Popover, Text } from '@latitude-data/web-ui'
 
 import { PinnedDocumentation } from './PinnedDocumentation'
 import { TooltipInfo } from './TooltipInfo'
+import { CoreAssistantMessage, CoreToolMessage } from 'ai'
 
 export const VariableSection = ({
   title,
@@ -17,7 +18,7 @@ export const VariableSection = ({
   onUnpin,
 }: {
   title: string
-  content: string
+  content: string | (CoreAssistantMessage | CoreToolMessage)[] | null
   tooltip?: string
   height?: string
   isPopoverOpen?: boolean
@@ -65,7 +66,13 @@ export const VariableSection = ({
           'h-24': height === '24',
         },
       )}
-      value={content}
+      value={
+        typeof content === 'string'
+          ? content
+          : content
+            ? JSON.stringify(content)
+            : ''
+      }
       disabled
       readOnly
     />

@@ -6,14 +6,12 @@ import type {
   TemplateNode,
 } from '$compiler/parser/interfaces'
 import {
-  AssistantMessage,
   Config,
+  ContentPart,
   ContentType,
   Message,
-  MessageContent,
   MessageRole,
   PromptlSourceRef,
-  SystemMessage,
 } from '$compiler/types'
 import type { Node as LogicalExpression } from 'estree'
 
@@ -34,6 +32,7 @@ import type {
   ToolCallReference,
 } from './types'
 import { removeCommonIndent } from './utils'
+import { CoreAssistantMessage } from 'ai'
 
 export type CompilationStatus = {
   completed: boolean
@@ -69,7 +68,7 @@ export class Compile {
     text: '',
     sourceMap: [],
   }
-  private accumulatedContent: MessageContent[] = []
+  private accumulatedContent: ContentPart[] = []
   private accumulatedToolCalls: ToolCallReference[] = []
 
   constructor({
@@ -185,33 +184,37 @@ export class Compile {
     })
   }
 
-  private addContent(content: MessageContent): void {
+  private addContent(content: ContentPart): void {
     this.groupStrayText()
     this.accumulatedContent.push(content)
   }
 
   private groupContent(): void {
     this.groupStrayText()
+
     const toolCalls = this.popToolCalls()
     const content = this.popContent()
 
     toolCalls.forEach(({ node: toolNode }) => {
       this.baseNodeError(errors.invalidToolCallPlacement, toolNode)
     })
-
     if (!content.length) return
 
     const message = {
       role: MessageRole.system,
       content,
-    } as SystemMessage
+    }
 
+    // TODO: review, contentpart can be more than string but system message only
+    // accepts content as string
+    // @ts-expect-error
     this.addMessage(message)
   }
 
-  private popContent(): MessageContent[] {
+  private popContent(): ContentPart[] {
     const content = this.accumulatedContent
     this.accumulatedContent = []
+
     return content
   }
 
@@ -229,10 +232,9 @@ export class Compile {
   private popStepResponse() {
     if (this.stepResponse === undefined) return undefined
 
-    const response: AssistantMessage = {
+    const response: CoreAssistantMessage = {
       role: MessageRole.assistant,
       content: this.stepResponse,
-      toolCalls: [],
     }
 
     this.stepResponse = undefined

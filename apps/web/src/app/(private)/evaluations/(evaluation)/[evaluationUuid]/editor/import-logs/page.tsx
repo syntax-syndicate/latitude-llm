@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   CloseTrigger,
+  MessageList,
   Modal,
   roleVariant,
   Table,
@@ -25,6 +26,8 @@ import { relativeTime } from '$/lib/relativeTime'
 import { ROUTES } from '$/services/routes'
 import useDocumentsForImport from '$/stores/documentsForImport'
 import useProviderLogs from '$/stores/providerLogs'
+import { CoreToolMessage, Message } from 'ai'
+import { CoreAssistantMessage } from 'ai'
 
 export default function ImportLogs({
   params,
@@ -193,30 +196,20 @@ const ProviderLogMessages = ({
     )
   }
 
+  const response =
+    providerLog.response && typeof providerLog.response === 'string'
+      ? [{ role: 'assistant', content: providerLog.response }]
+      : (providerLog.response as (CoreAssistantMessage | CoreToolMessage)[])
+
+  const messages = useMemo(() => {
+    return [...providerLog.messages, ...response]
+  }, [providerLog])
+
   return (
     <div className='rounded-lg border-2 bg-secondary p-4 overflow-y-auto max-h-[480px]'>
       <Text.H5M>Messages</Text.H5M>
       <div className='flex flex-col gap-2'>
-        {providerLog.messages.map((message, index) => (
-          <div key={index} className='flex flex-col gap-1'>
-            <div>
-              <Badge variant={roleVariant(message.role)}>
-                {capitalize(message.role)}
-              </Badge>
-            </div>
-            <div className='pl-4'>
-              <Text.H6M>{printMessageContent(message.content)}</Text.H6M>
-            </div>
-          </div>
-        ))}
-        <div className='flex flex-col gap-1'>
-          <div>
-            <Badge variant={roleVariant('assistant')}>Assistant</Badge>
-          </div>
-          <div className='pl-4'>
-            <Text.H6M>{printMessageContent(providerLog.response)}</Text.H6M>
-          </div>
-        </div>
+        <MessageList messages={messages} />
       </div>
     </div>
   )

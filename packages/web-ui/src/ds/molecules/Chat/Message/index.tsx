@@ -1,10 +1,9 @@
 import {
+  ContentPart,
   ContentType,
   MessageContent,
-  TextContent,
-  ToolContent,
-  ToolRequestContent,
 } from '@latitude-data/compiler'
+import { TextPart } from 'ai'
 
 import { cn } from '../../../../lib/utils'
 import { Badge, CodeBlock, Skeleton, Text } from '../../../atoms'
@@ -15,7 +14,7 @@ export { roleVariant } from './helpers'
 
 export type MessageProps = {
   role: string
-  content: MessageContent[] | string
+  content: MessageContent
   className?: string
   size?: 'default' | 'small'
   animatePulse?: boolean
@@ -87,7 +86,7 @@ const ContentValue = ({
 }: {
   index?: number
   color: TextColor
-  value: MessageContent | string
+  value: ContentPart
   size?: 'default' | 'small'
 }) => {
   const TextComponent = size === 'small' ? Text.H6 : Text.H5
@@ -107,7 +106,7 @@ const ContentValue = ({
 
   switch (value.type) {
     case ContentType.text:
-      return (value as TextContent).text.split('\n').map((line, lineIndex) => (
+      return (value as TextPart).text.split('\n').map((line, lineIndex) => (
         <TextComponent
           color={color}
           whiteSpace='preWrap'
@@ -121,12 +120,15 @@ const ContentValue = ({
     case ContentType.image:
       return <div>Image content not implemented yet</div>
 
+    case ContentType.file:
+      return <div>File content not implemented yet</div>
+
     case ContentType.toolCall:
       return (
         <div className='pt-2 w-full'>
           <div className='overflow-hidden rounded-lg w-full'>
             <CodeBlock language='json'>
-              {JSON.stringify(value as ToolRequestContent, null, 2)}
+              {JSON.stringify(value, null, 2)}
             </CodeBlock>
           </div>
         </div>
@@ -137,7 +139,7 @@ const ContentValue = ({
         <div className='pt-2 w-full'>
           <div className='overflow-hidden rounded-lg w-full'>
             <CodeBlock language='json'>
-              {JSON.stringify(value as ToolContent, null, 2)}
+              {JSON.stringify(value, null, 2)}
             </CodeBlock>
           </div>
         </div>

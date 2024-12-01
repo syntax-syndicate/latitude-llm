@@ -1,5 +1,5 @@
 import { TemplateNode, ToolCallTag } from '$compiler/parser/interfaces'
-import { ToolCall } from '$compiler/types'
+import { ToolCallPart } from 'ai'
 
 import type Scope from './scope'
 
@@ -11,7 +11,7 @@ export type ResolveBaseNodeProps<N extends TemplateNode> = {
   completedValue?: unknown
 }
 
-export type ToolCallReference = { node: ToolCallTag; value: ToolCall }
+export type ToolCallReference = { node: ToolCallTag; value: ToolCallPart }
 
 export type CompileOptions = {
   includeSourceMap?: boolean

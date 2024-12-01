@@ -53,9 +53,10 @@ export async function compile(
   addToolCall({
     node: node as ToolCallTag,
     value: {
-      id: String(attributes['id']),
-      name: String(attributes['name']),
-      arguments: jsonContent,
+      type: 'tool-call',
+      toolCallId: String(attributes['id']),
+      toolName: String(attributes['name']),
+      args: jsonContent,
     },
   })
 }

@@ -61,6 +61,7 @@ let workspace: Workspace
 const step: ChainStepResponse<'text'> = {
   streamType: 'text',
   text: 'fake-response-text',
+  output: [],
   usage: { promptTokens: 4, completionTokens: 6, totalTokens: 10 },
   toolCalls: [],
   documentLogUuid: 'fake-document-log-uuid',

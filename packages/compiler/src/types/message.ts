@@ -1,3 +1,18 @@
+import type {
+  ToolContent,
+  AssistantContent,
+  CoreAssistantMessage,
+  CoreToolMessage,
+  UserContent,
+  CoreUserMessage,
+  TextPart,
+  ToolCallPart,
+  FilePart,
+  ImagePart,
+  ToolResultPart,
+  CoreSystemMessage,
+} from 'ai'
+
 export enum ContentType {
   text = 'text',
   image = 'image',
@@ -12,84 +27,31 @@ export enum MessageRole {
   tool = 'tool',
 }
 
+// Message is a role + a MessageContent
+export type Message =
+  | CoreAssistantMessage
+  | CoreToolMessage
+  | CoreUserMessage
+  | CoreSystemMessage
+// MessageContent is a string or an array of ContentPart
+export type MessageContent =
+  | AssistantContent
+  | UserContent
+  | ToolContent
+  | string
+// ContentPart is all possible content types. It's always a type string value +
+// some extra fields that depend on the type. Inspect the types to see the
+// details.
+export type ContentPart =
+  | FilePart
+  | ImagePart
+  | TextPart
+  | ToolCallPart
+  | ToolResultPart
+  | string
+
 export type PromptlSourceRef = {
   start: number
   end: number
   identifier?: string
 }
-
-interface IMessageContent {
-  type: ContentType
-  _promptlSourceMap?: PromptlSourceRef[]
-  [key: string]: unknown
-}
-
-export type TextContent = IMessageContent & {
-  type: ContentType.text
-  text: string
-}
-
-export type ImageContent = IMessageContent & {
-  type: ContentType.image
-  image: string | Uint8Array | Buffer | ArrayBuffer | URL
-}
-
-export type ToolContent = {
-  type: ContentType.toolResult
-  toolCallId: string
-  toolName: string
-  result: unknown
-  isError?: boolean
-}
-
-export type ToolRequestContent = {
-  type: ContentType.toolCall
-  toolCallId: string
-  toolName: string
-  args: Record<string, unknown>
-}
-
-export type MessageContent =
-  | TextContent
-  | ImageContent
-  | ToolContent
-  | ToolRequestContent
-
-export type ToolCall = {
-  id: string
-  name: string
-  arguments: Record<string, unknown>
-}
-
-interface IMessage {
-  role: MessageRole
-  content: MessageContent[]
-  [key: string]: unknown
-}
-
-export type SystemMessage = IMessage & {
-  role: MessageRole.system
-}
-
-export type UserMessage = IMessage & {
-  role: MessageRole.user
-  name?: string
-}
-
-export type AssistantMessage = {
-  role: MessageRole.assistant
-  toolCalls: ToolCall[]
-  content: string | ToolRequestContent[] | MessageContent[]
-}
-
-export type ToolMessage = {
-  role: MessageRole.tool
-  content: ToolContent[]
-  [key: string]: unknown
-}
-
-export type Message =
-  | SystemMessage
-  | UserMessage
-  | AssistantMessage
-  | ToolMessage

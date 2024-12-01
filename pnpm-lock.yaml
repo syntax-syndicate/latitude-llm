@@ -357,9 +357,6 @@ importers:
       '@t3-oss/env-nextjs':
         specifier: ^0.10.1
         version: 0.10.1(typescript@5.6.3)(zod@3.23.8)
-      ai:
-        specifier: ^3.2.42
-        version: 3.4.23(openai@4.68.4(encoding@0.1.13)(zod@3.23.8))(react@19.0.0-rc-5d19e1c8-20240923)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(vue@3.5.12(typescript@5.6.3))(zod@3.23.8)
       bullmq:
         specifier: ^5.8.5
         version: 5.21.2
@@ -491,6 +488,9 @@ importers:
       '@types/react-dom':
         specifier: 18.3.0
         version: 18.3.0
+      ai:
+        specifier: ^3.4.23
+        version: 3.4.23(openai@4.68.4(encoding@0.1.13)(zod@3.23.8))(react@19.0.0-rc-5d19e1c8-20240923)(sswr@2.1.0(svelte@4.2.19))(svelte@4.2.19)(vue@3.5.12(typescript@5.6.3))(zod@3.23.8)
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.20(postcss@8.4.47)
@@ -638,6 +638,9 @@ importers:
       '@types/node':
         specifier: ^20.12.12
         version: 20.17.1
+      ai:
+        specifier: ^4.0.9
+        version: 4.0.9(react@19.0.0-rc-5d19e1c8-20240923)(zod@3.23.8)
       rollup:
         specifier: ^4.10.0
         version: 4.24.2
@@ -5286,9 +5289,6 @@ packages:
 
   '@types/node@20.17.1':
     resolution: {integrity: sha512-j2VlPv1NnwPJbaCNv69FO/1z4lId0QmGvpT41YxitRtWlg96g/j8qcv2RKsLKe2F6OJgyXhupN1Xo17b2m139Q==}
-
-  '@types/node@20.17.9':
-    resolution: {integrity: sha512-0JOXkRyLanfGPE2QRCwgxhzlBAvaRdCNMcvbd7jFfpmD4eEXll7LRwy5ymJmyeZqk7Nh7eD2LeUyQ68BbndmXw==}
 
   '@types/node@22.10.1':
     resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
@@ -11993,6 +11993,16 @@ snapshots:
       react: 18.3.1
       zod: 3.23.8
 
+  '@ai-sdk/react@1.0.3(react@19.0.0-rc-5d19e1c8-20240923)(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/provider-utils': 2.0.2(zod@3.23.8)
+      '@ai-sdk/ui-utils': 1.0.2(zod@3.23.8)
+      swr: 2.2.5(react@19.0.0-rc-5d19e1c8-20240923)
+      throttleit: 2.1.0
+    optionalDependencies:
+      react: 19.0.0-rc-5d19e1c8-20240923
+      zod: 3.23.8
+
   '@ai-sdk/solid@0.0.53(zod@3.23.8)':
     dependencies:
       '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
@@ -17515,10 +17525,6 @@ snapshots:
     dependencies:
       undici-types: 6.19.8
 
-  '@types/node@20.17.9':
-    dependencies:
-      undici-types: 6.19.8
-
   '@types/node@22.10.1':
     dependencies:
       undici-types: 6.20.0
@@ -18269,6 +18275,19 @@ snapshots:
       zod-to-json-schema: 3.23.5(zod@3.23.8)
     optionalDependencies:
       react: 18.3.1
+      zod: 3.23.8
+
+  ai@4.0.9(react@19.0.0-rc-5d19e1c8-20240923)(zod@3.23.8):
+    dependencies:
+      '@ai-sdk/provider': 1.0.1
+      '@ai-sdk/provider-utils': 2.0.2(zod@3.23.8)
+      '@ai-sdk/react': 1.0.3(react@19.0.0-rc-5d19e1c8-20240923)(zod@3.23.8)
+      '@ai-sdk/ui-utils': 1.0.2(zod@3.23.8)
+      '@opentelemetry/api': 1.9.0
+      jsondiffpatch: 0.6.0
+      zod-to-json-schema: 3.23.5(zod@3.23.8)
+    optionalDependencies:
+      react: 19.0.0-rc-5d19e1c8-20240923
       zod: 3.23.8
 
   ajv-draft-04@1.0.0(ajv@8.17.1):
@@ -21118,7 +21137,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.17.9
+      '@types/node': 22.10.1
       merge-stream: 2.0.0
       supports-color: 8.1.1
 

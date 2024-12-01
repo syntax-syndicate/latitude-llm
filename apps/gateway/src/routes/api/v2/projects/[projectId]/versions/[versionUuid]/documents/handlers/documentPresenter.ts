@@ -8,6 +8,7 @@ import { Result, TypedResult } from '@latitude-data/core/lib/Result'
 import { captureException } from '$/common/sentry'
 
 type DocumentResponse = ChainStepObjectResponse | ChainStepTextResponse
+
 export function documentRunPresenter(
   response: DocumentResponse,
 ): TypedResult<RunSyncAPIResponse, LatitudeError> {
@@ -27,15 +28,28 @@ export function documentRunPresenter(
   }
 
   const type = response.streamType
-  return Result.ok({
-    uuid: uuid!,
-    conversation: conversation!,
-    response: {
-      streamType: type,
-      usage: response.usage!,
-      text: response.text,
-      object: type === 'object' ? response.object : undefined,
-      toolCalls: type === 'text' ? response.toolCalls : [],
-    },
-  })
+  const common = {
+    streamType: type,
+    usage: response.usage!,
+    text: response.text,
+    object: type === 'object' ? response.object : undefined,
+    toolCalls: type === 'text' ? response.toolCalls : [],
+  }
+
+  if ('output' in response) {
+    return Result.ok({
+      uuid: uuid!,
+      conversation: conversation!,
+      response: {
+        ...common,
+        output: response.output,
+      } as ChainStepTextResponse,
+    })
+  } else {
+    return Result.ok({
+      uuid: uuid!,
+      conversation: conversation!,
+      response: common as ChainStepObjectResponse,
+    })
+  }
 }
