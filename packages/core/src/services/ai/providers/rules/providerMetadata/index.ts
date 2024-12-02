@@ -1,4 +1,4 @@
-import type { Message } from '@latitude-data/compiler'
+import type { ContentPart, Message } from '@latitude-data/compiler'
 
 import { Providers } from '../../models'
 
@@ -60,7 +60,7 @@ export function extractContentMetadata({
   content,
   provider,
 }: {
-  content: Record<string, unknown>
+  content: ContentPart
   provider: Providers
 }) {
   const definedAttributes = Object.keys(content).filter((key) =>

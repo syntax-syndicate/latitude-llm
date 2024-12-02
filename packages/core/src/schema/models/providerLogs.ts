@@ -1,4 +1,4 @@
-import { Message, ToolCall } from '@latitude-data/compiler'
+import { Message } from '@latitude-data/compiler'
 import {
   bigint,
   bigserial,
@@ -18,7 +18,7 @@ import { latitudeSchema } from '../db-schema'
 import { apiKeys } from '../models/apiKeys'
 import { timestamps } from '../schemaHelpers'
 import { providerApiKeys } from './providerApiKeys'
-import { CoreAssistantMessage, CoreToolMessage } from 'ai'
+import { CoreAssistantMessage, CoreToolMessage, ToolCallPart } from 'ai'
 
 export const logSourcesEnum = latitudeSchema.enum('log_source', [
   LogSources.Playground,
@@ -51,7 +51,7 @@ export const providerLogs = latitudeSchema.table(
     >(),
     responseObject: jsonb('response_object').$type<unknown>(),
     responseText: text('response_text').$type<string>(),
-    toolCalls: json('tool_calls').$type<ToolCall[]>().notNull().default([]),
+    toolCalls: json('tool_calls').$type<ToolCallPart[]>().notNull().default([]),
     tokens: bigint('tokens', { mode: 'number' }),
     costInMillicents: integer('cost_in_millicents').notNull().default(0),
     duration: bigint('duration', { mode: 'number' }), // in milliseconds!

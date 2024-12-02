@@ -1,9 +1,4 @@
-import type {
-  ContentType,
-  Message,
-  SystemMessage,
-  TextContent,
-} from '@latitude-data/compiler'
+import type { ContentType, Message } from '@latitude-data/compiler'
 
 import { Providers } from '../models'
 import { AppliedRules } from './index'
@@ -13,51 +8,6 @@ import {
   getProviderMetadataKey,
   type ProviderMetadata,
 } from './providerMetadata'
-
-function flattenSystemMessage({
-  message,
-  provider,
-}: {
-  message: SystemMessage
-  provider: Providers
-}): Message[] {
-  const content = message.content as TextContent[] | string
-
-  // NOTO: `applyCustomRules` can be invoked multiple times
-  // during a chain. if system message.content is already
-  // a string we consider it already processed.
-  if (typeof content === 'string') return [message]
-
-  const msgMetadata =
-    extractMessageMetadata({
-      message,
-      provider,
-    }).experimental_providerMetadata ?? {}
-
-  return content.flatMap((content) => {
-    const extracted = extractContentMetadata({ content, provider })
-    // @ts-expect-error - metadata key can be not present
-    const metadata = (extracted.experimental_providerMetadata ??
-      {}) as ProviderMetadata
-    const baseMsg = { role: message.role, content: content.text }
-
-    if (!Object.keys(metadata).length && !Object.keys(msgMetadata).length) {
-      return baseMsg
-    }
-
-    const key = getProviderMetadataKey(provider)
-
-    return {
-      ...baseMsg,
-      experimental_providerMetadata: {
-        [key]: {
-          ...(msgMetadata?.[key] || {}),
-          ...(metadata?.[key] || {}),
-        },
-      },
-    }
-  }) as unknown as Message[]
-}
 
 function groupContentMetadata({
   content,
@@ -107,14 +57,11 @@ export function vercelSdkRules(
   provider: Providers,
 ): AppliedRules {
   const messages = rules.messages.flatMap((message) => {
-    if (message.role === 'system') {
-      return flattenSystemMessage({ message, provider })
-    }
-
     const msg = extractMessageMetadata({
       message,
       provider,
     })
+
     const content = groupContentMetadata({
       content: msg.content,
       provider,
