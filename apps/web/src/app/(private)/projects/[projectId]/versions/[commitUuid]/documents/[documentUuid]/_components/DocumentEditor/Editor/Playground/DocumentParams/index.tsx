@@ -1,5 +1,6 @@
 import { useDocumentParameters } from '$/hooks/useDocumentParameters'
 import {
+  DatasetVersion,
   DocumentVersion,
   INPUT_SOURCE,
   InputSource,
@@ -33,6 +34,7 @@ const TABS: TabSelectorOption<InputSource>[] = [
 ]
 
 export type Props = {
+  datasetVersion: DatasetVersion
   document: DocumentVersion
   commit: ICommitContextType['commit']
   prompt: string
@@ -55,6 +57,7 @@ function ParamsTabs({
   source,
   datasetInfo,
   historyInfo,
+  datasetVersion,
 }: ContentProps) {
   return (
     <div className='w-full flex flex-col gap-4'>
@@ -70,16 +73,23 @@ function ParamsTabs({
           commit={commit}
           prompt={prompt}
           setPrompt={setPrompt}
+          datasetVersion={datasetVersion}
         />
       )}
       {source === INPUT_SOURCE.dataset && (
-        <DatasetParams data={datasetInfo} document={document} commit={commit} />
+        <DatasetParams
+          data={datasetInfo}
+          document={document}
+          commit={commit}
+          datasetVersion={datasetVersion}
+        />
       )}
       {source === INPUT_SOURCE.history && (
         <HistoryLogParams
           data={historyInfo}
           document={document}
           commit={commit}
+          datasetVersion={datasetVersion}
         />
       )}
     </div>
@@ -96,20 +106,16 @@ function CollapsedContentHeader({
   const isDataset =
     source === INPUT_SOURCE.dataset && datasetInfo.selectedDataset
   const isHistory = source === src.history && historyInfo.count > 0
-
-  const onPrevDatasetPage = (page: number) => datasetInfo.onRowChange(page - 1)
-  const onNextDatasetPage = (page: number) => datasetInfo.onRowChange(page + 1)
-
   return (
     <div className='w-full flex items-center justify-end gap-4'>
       {isDataset && (
         <ParametersPaginationNav
           zeroIndex
           label='rows in dataset'
-          currentIndex={datasetInfo.selectedRowIndex}
-          totalCount={datasetInfo.totalRows}
-          onPrevPage={onPrevDatasetPage}
-          onNextPage={onNextDatasetPage}
+          currentIndex={datasetInfo.position}
+          totalCount={datasetInfo.count}
+          onPrevPage={datasetInfo.onPrevPage}
+          onNextPage={datasetInfo.onNextPage}
         />
       )}
       {isHistory && (
@@ -130,6 +136,7 @@ export default function DocumentParams({ onExpand, ...props }: Props) {
   const { source, setSource } = useDocumentParameters({
     document: props.document,
     commitVersionUuid: commit.uuid,
+    datasetVersion: props.datasetVersion,
   })
 
   const datasetInfo = useSelectDataset({
@@ -142,6 +149,7 @@ export default function DocumentParams({ onExpand, ...props }: Props) {
   const historyInfo = useLogHistoryParams({
     document: props.document,
     commitVersionUuid: commit.uuid,
+    datasetVersion: props.datasetVersion,
   })
 
   const contentProps = {
@@ -150,6 +158,7 @@ export default function DocumentParams({ onExpand, ...props }: Props) {
     setSource,
     datasetInfo,
     historyInfo,
+    datasetVersion: props.datasetVersion,
   }
 
   return (

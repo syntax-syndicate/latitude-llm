@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react'
 
 import { recalculateInputs } from '$/hooks/useDocumentParameters/recalculateInputs'
 import {
+  DatasetVersion,
   DocumentLog,
   DocumentVersion,
   INPUT_SOURCE,
@@ -108,8 +109,10 @@ function getLinkedDataset({
 export function useDocumentParameters({
   document,
   commitVersionUuid,
+  datasetVersion,
 }: {
   document: DocumentVersion
+  datasetVersion: DatasetVersion
   commitVersionUuid: string
 }) {
   const { project } = useCurrentProject()
@@ -264,15 +267,22 @@ export function useDocumentParameters({
   )
 
   const setDataset = useCallback(
-    async ({ datasetId, data }: { datasetId: number; data: LinkedDataset }) => {
-      console.log("DATASET_ID", datasetId)
-      console.log("LINKED_DATASET", data)
+    async ({
+      datasetId,
+      datasetVersion,
+      data,
+    }: {
+      datasetId: number
+      datasetVersion: DatasetVersion
+      data: LinkedDataset
+    }) => {
       await saveLinkedDataset({
         projectId,
         commitUuid,
         documentUuid: document.documentUuid,
         datasetId,
-        rowIndex: data.rowIndex ?? 0,
+        datasetVersion,
+        rowIndex: data.rowIndex,
         inputs: data.inputs,
         mappedInputs: data.mappedInputs,
       })
@@ -297,6 +307,7 @@ export function useDocumentParameters({
         })
         setDataset({
           datasetId: document.datasetId,
+          datasetVersion,
           data: {
             rowIndex: linkedDataset.rowIndex,
             mappedInputs: linkedDataset.mappedInputs,
@@ -313,7 +324,14 @@ export function useDocumentParameters({
         }),
       )
     },
-    [inputs, setInputs, source, document.datasetId, linkedDataset],
+    [
+      inputs,
+      setInputs,
+      source,
+      document.datasetId,
+      linkedDataset,
+      datasetVersion,
+    ],
   )
 
   const parameters = useMemo(

@@ -1,5 +1,5 @@
 import { ROUTES } from '$/services/routes'
-import { DocumentVersion } from '@latitude-data/core/browser'
+import { DatasetVersion, DocumentVersion } from '@latitude-data/core/browser'
 import {
   Button,
   cn,
@@ -29,14 +29,14 @@ export function DatasetParams({
   data,
   commit,
   document,
+  datasetVersion,
 }: {
   document: DocumentVersion
   commit: ICommitContextType['commit']
   data: UseSelectDataset
+  datasetVersion: DatasetVersion
 }) {
   const selectedId = data.selectedDataset?.id
-  const onPrevPage = (page: number) => data.onRowChange(page - 1)
-  const onNextPage = (page: number) => data.onRowChange(page + 1)
   return (
     <div className='flex flex-col gap-y-4'>
       <div className='flex flex-row items-center justify-between gap-x-4 border-b border-border pb-4'>
@@ -49,13 +49,13 @@ export function DatasetParams({
           value={selectedId}
         />
         <div className='flex-none'>
-          {data.selectedDataset && data.selectedRowIndex !== undefined ? (
+          {data.selectedDataset && data.position !== undefined ? (
             <ParametersPaginationNav
               zeroIndex
-              currentIndex={data.selectedRowIndex}
-              totalCount={data.totalRows}
-              onPrevPage={onPrevPage}
-              onNextPage={onNextPage}
+              currentIndex={data.position}
+              totalCount={data.count}
+              onPrevPage={data.onPrevPage}
+              onNextPage={data.onNextPage}
               label='rows in dataset'
             />
           ) : (
@@ -69,10 +69,11 @@ export function DatasetParams({
           document={document}
           commit={commit}
           isLoading={data.isLoading}
-          mappedInputs={data.selectedRow.mappedInputs}
-          headersOptions={data.datasetPreview.headersOptions}
-          onSelectHeader={data.onSelectHeader}
+          mappedInputs={data.mappedInputs}
+          rowCellOptions={data.rowCellOptions}
+          onSelectRowCell={data.onSelectRowCell}
           selectedDataset={data.selectedDataset}
+          datasetVersion={datasetVersion}
         />
       </div>
     </div>

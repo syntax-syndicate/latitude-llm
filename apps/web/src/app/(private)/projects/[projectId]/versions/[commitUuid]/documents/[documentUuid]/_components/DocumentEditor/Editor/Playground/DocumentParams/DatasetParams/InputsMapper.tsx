@@ -4,6 +4,8 @@ import {
   LinkedDataset,
   DocumentVersion,
   PlaygroundInput,
+  DatasetV2,
+  DatasetVersion,
 } from '@latitude-data/core/browser'
 import {
   Badge,
@@ -16,7 +18,7 @@ import {
   type ICommitContextType,
 } from '@latitude-data/web-ui'
 
-import { UseSelectDataset, type DatasetPreview } from './useSelectDataset'
+import { UseSelectDataset } from './useSelectDataset'
 
 function getTooltipValue(input: PlaygroundInput<'dataset'>) {
   if (input === undefined || input === null) {
@@ -35,18 +37,20 @@ export function InputMapper({
   document,
   commit,
   mappedInputs,
-  headersOptions,
+  rowCellOptions,
   isLoading,
-  onSelectHeader,
+  onSelectRowCell,
   selectedDataset,
+  datasetVersion,
 }: {
   document: DocumentVersion
   commit: ICommitContextType['commit']
   mappedInputs: LinkedDataset['mappedInputs']
-  headersOptions: DatasetPreview['headersOptions']
-  onSelectHeader: UseSelectDataset['onSelectHeader']
+  rowCellOptions: UseSelectDataset['rowCellOptions']
+  onSelectRowCell: UseSelectDataset['onSelectRowCell']
   isLoading: boolean
-  selectedDataset: Dataset | undefined
+  selectedDataset: Dataset | DatasetV2 | undefined
+  datasetVersion: DatasetVersion
 }) {
   const {
     setSource,
@@ -54,6 +58,7 @@ export function InputMapper({
   } = useDocumentParameters({
     document,
     commitVersionUuid: commit.uuid,
+    datasetVersion,
   })
   return (
     <ClientOnly>
@@ -88,8 +93,8 @@ export function InputMapper({
                           isLoading ? 'Loading...' : 'Choose row header'
                         }
                         disabled={disabled}
-                        options={headersOptions}
-                        onChange={onSelectHeader(param)}
+                        options={rowCellOptions}
+                        onChange={onSelectRowCell(param)}
                         value={value}
                       />
                       <div className='flex flex-row items-center gap-x-2 flex-grow min-w-0'>
