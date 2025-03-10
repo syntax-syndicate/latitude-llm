@@ -17,14 +17,17 @@ const datasetInputSchema = z.object({
   value: z.string(),
   metadata: datasetInputMetadataSchema,
 })
-const inputsSchema = z.record(datasetInputSchema)
+const inputsSchema = z.record(datasetInputSchema).optional()
 
-const mappedInputsSchema = z.record(z.number())
+// TODO: Remove number when migrated to datasets V2
+const mappedInputsSchema = z.union([z.record(z.number()), z.record(z.string())])
 
 export const saveLinkedDatasetAction = withDataset
   .createServerAction()
   .input(
     z.object({
+      // TODO: Make mandatory when all is migrated to datasets V2
+      datasetRowId: z.number().optional(),
       rowIndex: z.number().optional(),
       mappedInputs: mappedInputsSchema,
       inputs: inputsSchema,
@@ -36,6 +39,7 @@ export const saveLinkedDatasetAction = withDataset
       datasetVersion: ctx.datasetVersion,
       dataset: ctx.dataset,
       data: {
+        datasetRowId: input.datasetRowId,
         rowIndex: input.rowIndex,
         mappedInputs: input.mappedInputs,
         inputs: input.inputs,

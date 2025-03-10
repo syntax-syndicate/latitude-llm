@@ -1,4 +1,4 @@
-import { ParameterType } from '@latitude-data/constants'
+import { DatasetVersion, ParameterType } from '@latitude-data/constants'
 
 export const INPUT_SOURCE = {
   manual: 'manual',
@@ -24,9 +24,9 @@ type LocalPlaygroundInput<_S extends LocalInputSource = 'manual'> = {
 }
 export type PlaygroundInput<S extends InputSource> = S extends 'dataset'
   ? {
-      value: string
-      metadata: PlaygroundInputMetadata & { includeInPrompt: boolean }
-    }
+    value: string
+    metadata: PlaygroundInputMetadata & { includeInPrompt: boolean }
+  }
   : LocalPlaygroundInput<LocalInputSource>
 
 type ManualInput = PlaygroundInput<'manual'>
@@ -45,15 +45,25 @@ export type LinkedDataset = {
   mappedInputs: Record<string, number>
 }
 
-export type PlaygroundInputs<S extends InputSource> = {
+export type LinkedDatasetRow = {
+  datasetRowId: number
+  mappedInputs: Record<string, string>
+}
+
+export type PlaygroundInputs<
+  S extends InputSource,
+  V extends DatasetVersion = DatasetVersion,
+> = {
   source: S
   manual: {
     inputs: Record<string, ManualInput>
   }
   // DEPRECATED: Remove after a while
-  dataset: LinkedDataset & {
+  dataset: V extends DatasetVersion.V1
+  ? LinkedDataset & {
     datasetId: number | undefined
   }
+  : LinkedDatasetRow & { datasetId: number | undefined }
   history: {
     logUuid: string | undefined
     inputs: Record<string, HistoryInput>

@@ -15,10 +15,11 @@ import { latitudeSchema } from '../db-schema'
 import { timestamps } from '../schemaHelpers'
 import { commits } from './commits'
 import { datasets } from './datasets'
-import { DocumentType, LinkedDataset } from '../../browser'
+import { DocumentType, LinkedDataset, LinkedDatasetRow } from '../../browser'
 import { datasetsV2 } from './datasetsV2'
 
 type LinkedDatasetByDatasetId = Record<number, LinkedDataset>
+type LinkedDatasetByDatasetIdAndRowId = Record<number, LinkedDatasetRow>
 
 export const documentTypesEnum = latitudeSchema.enum('document_type_enum', [
   DocumentType.Prompt,
@@ -51,6 +52,9 @@ export const documentVersions = latitudeSchema.table(
     ),
     linkedDataset: json('linked_dataset_by_dataset_id')
       .$type<LinkedDatasetByDatasetId>()
+      .default({}),
+    linkedDatasetAndRow: json('linked_dataset_by_dataset_id_and_row_id')
+      .$type<LinkedDatasetByDatasetIdAndRowId>()
       .default({}),
     deletedAt: timestamp('deleted_at'),
     ...timestamps(),

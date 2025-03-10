@@ -11,16 +11,23 @@ import {
 import { useCurrentCommit, useCurrentProject } from '@latitude-data/web-ui'
 import useDocumentVersions from '$/stores/documentVersions'
 import { useVersionedDatasets } from '$/hooks/useVersionedDatasets'
-import { useDatasetV1RowsForParamaters } from './useDatasetRowsForParameters/useDatasetV1RowsForParamaters'
+import { useDatasetRowsForParameters } from './useDatasetRowsForParameters'
+import {
+  UseDatasetRowsForParamaters,
+  useDatasetV1RowsForParamaters,
+} from './useDatasetRowsForParameters/useDatasetV1RowsForParamaters'
+import { ConversationMetadata } from 'promptl-ai'
 
 export function useSelectDataset({
   document,
   commitVersionUuid,
   source,
+  metadata,
 }: {
   document: DocumentVersion
   commitVersionUuid: string
   source: InputSource
+  metadata: ConversationMetadata | undefined
 }) {
   const [selectedDataset, setSelectedDataset] = useState<
     Dataset | DatasetV2 | undefined
@@ -77,25 +84,18 @@ export function useSelectDataset({
     dataset: isV1 ? (selectedDataset as Dataset) : undefined,
     enabled: isEnabled,
   })
+  const rowsV2 = useDatasetRowsForParameters({
+    document,
+    commitVersionUuid,
+    dataset: !isV1 ? (selectedDataset as DatasetV2) : undefined,
+    enabled: isEnabled,
+    metadata,
+  })
 
-  const rowsData = isV1
-    ? rowsV1
-    : {
-        // FIXME: Implement V2
-        isLoading: false,
-        mappedInputs: {},
-        rowCellOptions: [],
-        onSelectRowCell: (_p: string) => (_v: number) => {},
-        count: 0,
-        position: 0,
-        onPrevPage: () => {},
-        onNextPage: () => {},
-      }
+  const rowsData: UseDatasetRowsForParamaters = isV1 ? rowsV1 : rowsV2
 
   return {
-    // Rows data
     ...rowsData,
-    // Dataset selection
     datasetOptions,
     selectedDataset,
     onSelectDataset,

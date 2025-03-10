@@ -5,6 +5,7 @@ import {
   type Dataset,
   type DocumentVersion,
   DatasetVersion,
+  LinkedDataset,
 } from '@latitude-data/core/browser'
 import { SelectOption } from '@latitude-data/web-ui'
 import { useCallback, useMemo } from 'react'
@@ -70,13 +71,15 @@ export function useDatasetV1RowsForParamaters({
   const { data: rows, isLoading: isLoadingCsv } = useDatasetPreview({
     dataset: enabled ? dataset : undefined,
   })
-  const {
-    dataset: { inputs, mappedInputs, rowIndex, setDataset },
-  } = useDocumentParameters({
+  const { dataset: ds } = useDocumentParameters({
     document,
     commitVersionUuid,
     datasetVersion: DatasetVersion.V1,
   })
+  const inputs = ds.inputs as LinkedDataset['inputs']
+  const mappedInputs = ds.mappedInputs as LinkedDataset['mappedInputs']
+  const rowIndex = ds.rowIndex
+  const setDataset = ds.setDataset
   const onPrevPage = (page: number) => onRowChange(page - 1)
   const onNextPage = (page: number) => onRowChange(page + 1)
   const datasetPreview = useMemo<DatasetPreview>(() => {
@@ -160,9 +163,11 @@ export function useDatasetV1RowsForParamaters({
     mappedInputs: mappedInputs ?? {},
     rowCellOptions: datasetPreview?.rowCellOptions ?? [],
     onSelectRowCell,
-    count: datasetPreview?.rowCount ?? 0,
     position: rowIndex,
+    count: datasetPreview?.rowCount ?? 0,
     onPrevPage,
     onNextPage,
   }
 }
+
+export type UseDatasetRowsForParamaters = ReturnType<typeof useDatasetV1RowsForParamaters>

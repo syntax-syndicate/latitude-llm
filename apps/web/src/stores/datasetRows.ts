@@ -1,12 +1,12 @@
 import type { DatasetRow, DatasetV2 } from '@latitude-data/core/browser'
 import useFetcher from '$/hooks/useFetcher'
-import { compact, omit } from 'lodash-es'
+import { compact } from 'lodash-es'
 import { ROUTES } from '$/services/routes'
 import useSWR, { SWRConfiguration } from 'swr'
 import { compactObject } from '@latitude-data/core/lib/compactObject'
 import { DatasetRowData } from '@latitude-data/core/schema'
 
-export type ClientDatasetRow = Omit<DatasetRow, 'rowData'> & {
+export type ClientDatasetRow = DatasetRow & {
   cells: DatasetRowData[keyof DatasetRowData][]
 }
 export function buildDatasetRowKey({
@@ -56,7 +56,9 @@ export default function useDatasetRows(
     mutate,
     ...rest
   } = useSWR<ClientDatasetRow[]>(
-    buildDatasetRowKey({ datasetId: dataset?.id, page, pageSize }),
+    dataset
+      ? buildDatasetRowKey({ datasetId: dataset.id, page, pageSize })
+      : undefined,
     fetcher,
     {
       ...opts,
@@ -82,9 +84,8 @@ export const serializeRows =
   (columns: DatasetV2['columns']) =>
   (rows: DatasetRow[]): ClientDatasetRow[] => {
     return rows.map((item) => {
-      const rest = omit(item, 'rowData') as Omit<DatasetRow, 'rowData'>
       return {
-        ...rest,
+        ...item,
         cells: columns.map(
           ({ identifier }) => item.rowData[identifier] ?? null,
         ),

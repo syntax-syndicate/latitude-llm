@@ -48,7 +48,9 @@ export function useVersionedDatasets({
   const datasetVersion =
     hasDatasetsV2 && !isLoadingFeatureFlag
       ? DatasetVersion.V2
-      : DatasetVersion.V1
+      : !isLoadingFeatureFlag
+        ? DatasetVersion.V1
+        : undefined
 
   const isV1 = datasetVersion === DatasetVersion.V1
 
@@ -58,8 +60,9 @@ export function useVersionedDatasets({
       onFetched?.(datasets, DatasetVersion.V1)
     },
   })
+
   const { data: datasetsV2, isLoading: isLoadingDatasetsV2 } = useDatasetsV2({
-    enabled: enabled && datasetVersion === DatasetVersion.V2,
+    enabled: enabled && !isV1,
     onFetched: (datasets) => {
       onFetched?.(datasets, DatasetVersion.V2)
     },
@@ -71,7 +74,7 @@ export function useVersionedDatasets({
 
   return {
     data: isV1 ? datasetsV1 : datasetsV2,
-    datasetVersion,
+    datasetVersion: datasetVersion ?? DatasetVersion.V1,
     isLoading,
   }
 }

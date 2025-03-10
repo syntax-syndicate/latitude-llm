@@ -88,6 +88,7 @@ export default function Playground({
           })}
         >
           <DocumentParams
+            metadata={metadata}
             commit={commit}
             document={document}
             prompt={prompt}

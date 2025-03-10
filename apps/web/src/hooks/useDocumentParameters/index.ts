@@ -9,6 +9,7 @@ import {
   Inputs,
   InputSource,
   LinkedDataset,
+  LinkedDatasetRow,
   LocalInputs,
   LocalInputSource,
   PlaygroundInput,
@@ -27,10 +28,21 @@ const EMPTY_LINKED_DATASET = {
   inputs: {} as LinkedDataset['inputs'],
   mappedInputs: {} as LinkedDataset['mappedInputs'],
 }
+
+const EMPTY_LINKED_DATASET_ROW: LinkedDatasetRow = {
+  datasetRowId: 0, // This is wrong. This is an ID in DB. But allows to have this attribute as non optional
+  mappedInputs: {} as LinkedDatasetRow['mappedInputs'],
+}
+
 const EMPTY_INPUTS: PlaygroundInputs<'manual'> = {
   source: INPUT_SOURCE.manual,
   manual: { inputs: {} },
-  dataset: { datasetId: undefined, ...EMPTY_LINKED_DATASET },
+  dataset: {
+    datasetId: undefined,
+    ...EMPTY_LINKED_DATASET_ROW,
+    // DEPRECATED: Remove after a dataset V2 migration
+    ...EMPTY_LINKED_DATASET,
+  },
   history: { logUuid: undefined, inputs: {} },
 }
 
@@ -81,38 +93,57 @@ function mapLogParametersToInputs({
 
 type InputsByDocument = Record<string, PlaygroundInputs<InputSource>>
 
-function getLinkedDataset({
+function getLinkedDataset<V extends DatasetVersion = DatasetVersion>({
   document,
   localInputs,
+  datasetVersion,
 }: {
   document: DocumentVersion
-  localInputs: PlaygroundInputs<'dataset'>['dataset']
+  localInputs: PlaygroundInputs<'dataset', V>['dataset']
+  datasetVersion: V
 }) {
   const datasetId = document.datasetId
-  if (!datasetId) return EMPTY_LINKED_DATASET
+  if (!datasetId) {
+    if (datasetVersion === DatasetVersion.V1) return EMPTY_LINKED_DATASET
+    return EMPTY_LINKED_DATASET_ROW
+  }
 
-  const all = document.linkedDataset ?? {}
+  const isV1 = datasetVersion === DatasetVersion.V1
+  let all = isV1
+    ? (document.linkedDataset ?? {})
+    : (document.linkedDatasetAndRow ?? {})
+
+  if (!isV1) {
+    console.log('IS_V2')
+  }
   const isEmpty = Object.keys(all).length === 0
 
   if (isEmpty) {
-    const legacyLocalData = localInputs
-    return {
-      rowIndex: legacyLocalData.rowIndex,
-      inputs: legacyLocalData.inputs,
-      mappedInputs: legacyLocalData.mappedInputs,
+    let whenEmptyData = {
+      inputs: localInputs.inputs,
+      mappedInputs: localInputs.mappedInputs,
     }
+    return isV1
+      ? { ...whenEmptyData, rowIndex: 0 }
+      : { ...whenEmptyData, datasetRowId: 0 }
   }
 
-  return all[datasetId] ? all[datasetId] : EMPTY_LINKED_DATASET
+  return all[datasetId]
+    ? all[datasetId]
+    : isV1
+      ? EMPTY_LINKED_DATASET
+      : EMPTY_LINKED_DATASET_ROW
 }
 
-export function useDocumentParameters({
+export function useDocumentParameters<
+  V extends DatasetVersion = DatasetVersion,
+>({
   document,
   commitVersionUuid,
   datasetVersion,
 }: {
   document: DocumentVersion
-  datasetVersion: DatasetVersion
+  datasetVersion: V
   commitVersionUuid: string
 }) {
   const { project } = useCurrentProject()
@@ -130,15 +161,20 @@ export function useDocumentParameters({
   const key = `${commitVersionUuid}:${document.documentUuid}`
   const inputs = allInputs[key] ?? EMPTY_INPUTS
   const source = inputs.source
-  const linkedDataset = getLinkedDataset({
+  const linkedDataset = getLinkedDataset<V>({
     document,
+    // @ts-expect-error - This will fixed after migration to dataset V2
     localInputs: inputs.dataset,
+    datasetVersion,
   })
 
   let inputsBySource =
     source === INPUT_SOURCE.dataset
-      ? linkedDataset.inputs
+      // TODO: remove after datasets 2 migration
+      ? (linkedDataset as LinkedDataset).inputs
       : inputs[source].inputs
+
+  console.log("LINKED_DATASET", linkedDataset)
 
   const setInputs = useCallback(
     <S extends LocalInputSource>(source: S, newInputs: LocalInputs<S>) => {
@@ -273,8 +309,8 @@ export function useDocumentParameters({
       data,
     }: {
       datasetId: number
-      datasetVersion: DatasetVersion
       data: LinkedDataset
+      datasetVersion: DatasetVersion
     }) => {
       await saveLinkedDataset({
         projectId,
@@ -282,9 +318,30 @@ export function useDocumentParameters({
         documentUuid: document.documentUuid,
         datasetId,
         datasetVersion,
-        rowIndex: data.rowIndex,
         inputs: data.inputs,
         mappedInputs: data.mappedInputs,
+        rowIndex: data.rowIndex,
+      })
+    },
+    [saveLinkedDataset, projectId, commitUuid, document.documentUuid],
+  )
+
+  const setDatasetV2 = useCallback(
+    async ({
+      datasetId,
+      data,
+    }: {
+      datasetId: number
+      data: LinkedDatasetRow
+    }) => {
+      await saveLinkedDataset({
+        projectId,
+        commitUuid,
+        documentUuid: document.documentUuid,
+        datasetId,
+        datasetVersion,
+        mappedInputs: data.mappedInputs,
+        datasetRowId: data.datasetRowId,
       })
     },
     [saveLinkedDataset, projectId, commitUuid, document.documentUuid],
@@ -300,20 +357,27 @@ export function useDocumentParameters({
         }),
       )
 
-      if (document.datasetId && linkedDataset) {
+      // TODO: Remove after a dataset V2 migration
+      if (document.datasetId && linkedDataset && 'inputs' in linkedDataset) {
         const datasetInputs = recalculateInputs<'dataset'>({
           inputs: linkedDataset.inputs,
           metadata,
         })
-        setDataset({
-          datasetId: document.datasetId,
-          datasetVersion,
-          data: {
-            rowIndex: linkedDataset.rowIndex,
-            mappedInputs: linkedDataset.mappedInputs,
-            inputs: datasetInputs,
-          },
-        })
+
+        if (
+          datasetVersion === DatasetVersion.V1 &&
+          'rowIndex' in linkedDataset
+        ) {
+          setDataset({
+            datasetId: document.datasetId,
+            datasetVersion,
+            data: {
+              inputs: datasetInputs,
+              mappedInputs: linkedDataset.mappedInputs,
+              rowIndex: linkedDataset.rowIndex,
+            } as LinkedDataset,
+          })
+        }
       }
 
       setInputs(
@@ -352,10 +416,20 @@ export function useDocumentParameters({
     },
     dataset: {
       datasetId: document.datasetId,
-      rowIndex: linkedDataset?.rowIndex,
-      inputs: linkedDataset?.inputs,
+      datasetRowId:
+        linkedDataset && 'datasetRowId' in linkedDataset
+          ? linkedDataset?.datasetRowId
+          : undefined,
+      // DEPRECATED: Remove after a dataset V2 migration
+      rowIndex:
+        linkedDataset && 'rowIndex' in linkedDataset
+          ? linkedDataset?.rowIndex
+          : undefined,
       mappedInputs: linkedDataset?.mappedInputs,
+      // @ts-expect-error - This will fixed after migration to dataset V2
+      inputs: linkedDataset?.inputs,
       setDataset,
+      setDatasetV2,
       copyToManual: copyDatasetInputsToManual,
     },
     history: {

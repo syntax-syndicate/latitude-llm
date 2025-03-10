@@ -10,6 +10,7 @@ import Link from 'next/link'
 
 import { ParametersPaginationNav } from '../PaginationNav'
 import { InputMapper } from './InputsMapper'
+import { DatasetsV1InputMapper } from './InputsMapper/DatasetsV1InputsMapper'
 import { type UseSelectDataset } from './useSelectDataset'
 
 function BlankSlate() {
@@ -64,17 +65,21 @@ export function DatasetParams({
         </div>
       </div>
       <div className={cn({ 'opacity-50': data.isLoading })}>
-        <InputMapper
-          key={selectedId}
-          document={document}
-          commit={commit}
-          isLoading={data.isLoading}
-          mappedInputs={data.mappedInputs}
-          rowCellOptions={data.rowCellOptions}
-          onSelectRowCell={data.onSelectRowCell}
-          selectedDataset={data.selectedDataset}
-          datasetVersion={datasetVersion}
-        />
+        {datasetVersion === DatasetVersion.V1 ? (
+          <DatasetsV1InputMapper
+            key={selectedId}
+            document={document}
+            commit={commit}
+            isLoading={data.isLoading}
+            mappedInputs={data.mappedInputs}
+            rowCellOptions={data.rowCellOptions}
+            onSelectRowCell={data.onSelectRowCell}
+            selectedDataset={data.selectedDataset}
+            datasetVersion={datasetVersion}
+          />
+        ) : (
+          <div>TBD</div>
+        )}
       </div>
     </div>
   )

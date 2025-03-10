@@ -26,6 +26,7 @@ import {
 } from './HistoryLogParams/useLogHistoryParams'
 import { ManualParams } from './ManualParams'
 import { ParametersPaginationNav } from './PaginationNav'
+import { ConversationMetadata } from 'promptl-ai'
 
 const TABS: TabSelectorOption<InputSource>[] = [
   { label: 'Manual', value: INPUT_SOURCE.manual },
@@ -131,7 +132,14 @@ function CollapsedContentHeader({
   )
 }
 
-export default function DocumentParams({ onExpand, ...props }: Props) {
+type DocumentParamsProps = Props & {
+  metadata: ConversationMetadata | undefined
+}
+export default function DocumentParams({
+  onExpand,
+  metadata,
+  ...props
+}: DocumentParamsProps) {
   const commit = props.commit
   const { source, setSource } = useDocumentParameters({
     document: props.document,
@@ -143,6 +151,7 @@ export default function DocumentParams({ onExpand, ...props }: Props) {
     document: props.document,
     commitVersionUuid: commit.uuid,
     source,
+    metadata,
   })
 
   // TODO: Improve. Pass source and only fetch logs when in logs tab
