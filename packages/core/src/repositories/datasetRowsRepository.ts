@@ -67,14 +67,16 @@ export class DatasetRowsRepository extends Repository<DatasetRow> {
         and(
           this.scopeFilter,
           eq(datasetRows.datasetId, datasetId),
-          eq(datasetRows.id, datasetRowId)
-        )
+          eq(datasetRows.id, datasetRowId),
+        ),
       )
 
     const row = rows[0]
 
     if (!row) {
-      return Result.error(new Error(`Dataset row not found with id ${datasetRowId}`))
+      return Result.error(
+        new Error(`Dataset row not found with id ${datasetRowId}`),
+      )
     }
 
     const targetCreatedAtUTC = new Date(row.createdAt).toISOString()
@@ -83,10 +85,12 @@ export class DatasetRowsRepository extends Repository<DatasetRow> {
         count: sql`count(*)`.mapWith(Number).as('total_count'),
       })
       .from(datasetRows)
-      .where(and(
-        this.scopeFilter,
-        sql`${datasetRows.createdAt} >= ${targetCreatedAtUTC}`,
-      ))
+      .where(
+        and(
+          this.scopeFilter,
+          sql`${datasetRows.createdAt} >= ${targetCreatedAtUTC}`,
+        ),
+      )
     const position = Number(countResult[0]?.count)
     const page = Math.ceil(position / DEFAULT_PAGINATION_SIZE)
 

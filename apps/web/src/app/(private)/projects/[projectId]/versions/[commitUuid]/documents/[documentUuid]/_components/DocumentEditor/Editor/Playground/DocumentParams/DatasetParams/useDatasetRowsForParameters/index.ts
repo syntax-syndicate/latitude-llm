@@ -146,7 +146,7 @@ export function useDatasetRowsForParameters({
         param,
         value,
         isEmpty,
-        isMapped: !!columnIdentifier
+        isMapped: !!columnIdentifier,
       }
     })
     const mappedValues = values.reduce(

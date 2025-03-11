@@ -41,7 +41,7 @@ export function InputMapper({
     datasetVersion,
   })
   // TODO: Implement this
-  const copyToManual = useCallback(() => { }, [])
+  const copyToManual = useCallback(() => {}, [])
   const disabled = !selectedDataset || isLoading
   return (
     <ClientOnly>

@@ -166,7 +166,7 @@ export function useDocumentParameters<
   let inputsBySource =
     source === INPUT_SOURCE.dataset
       ? // TODO: remove after datasets 2 migration
-      ((linkedDataset as LinkedDataset).inputs ?? {})
+        ((linkedDataset as LinkedDataset).inputs ?? {})
       : inputs[source].inputs
 
   const setInputs = useCallback(
