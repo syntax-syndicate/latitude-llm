@@ -12,10 +12,7 @@ import { useCurrentCommit, useCurrentProject } from '@latitude-data/web-ui'
 import useDocumentVersions from '$/stores/documentVersions'
 import { useVersionedDatasets } from '$/hooks/useVersionedDatasets'
 import { useDatasetRowsForParameters } from './useDatasetRowsForParameters'
-import {
-  UseDatasetRowsForParamaters,
-  useDatasetV1RowsForParamaters,
-} from './useDatasetRowsForParameters/useDatasetV1RowsForParamaters'
+import { useDatasetV1RowsForParamaters } from './useDatasetRowsForParameters/useDatasetV1RowsForParamaters'
 import { ConversationMetadata } from 'promptl-ai'
 
 export function useSelectDataset({
@@ -92,14 +89,15 @@ export function useSelectDataset({
     metadata,
   })
 
-  const rowsData: UseDatasetRowsForParamaters = isV1 ? rowsV1 : rowsV2
+  const rowsData = isV1 ? rowsV1 : rowsV2
+  const isLoading = isLoadingDatasets || rowsData.isLoading
 
   return {
     ...rowsData,
     datasetOptions,
     selectedDataset,
     onSelectDataset,
-    isLoading: isLoadingDatasets || rowsData.isLoading,
+    isLoading,
   }
 }
 

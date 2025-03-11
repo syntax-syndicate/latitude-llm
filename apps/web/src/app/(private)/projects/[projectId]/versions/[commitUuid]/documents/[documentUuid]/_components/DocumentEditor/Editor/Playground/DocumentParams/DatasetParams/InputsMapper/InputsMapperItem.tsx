@@ -7,12 +7,15 @@ import {
   Text,
   Tooltip,
 } from '@latitude-data/web-ui'
-import { type UseSelectDataset } from '../useSelectDataset'
 import { DatasetVersion, InputSource } from '@latitude-data/core/browser'
 
 type SelectValueType<V extends DatasetVersion> = V extends DatasetVersion.V1
-  ? number | undefined
-  : string | undefined
+  ? number
+  : string
+export type OnSelectRowCellFn<T> = (
+  param: string,
+) => (value: T | undefined) => void
+
 export function InputsMapperItem<V extends DatasetVersion = DatasetVersion>({
   value,
   isLoading,
@@ -26,12 +29,12 @@ export function InputsMapperItem<V extends DatasetVersion = DatasetVersion>({
   copyToManual,
 }: {
   datasetVersion: V
-  value: SelectValueType<V>
+  value: SelectValueType<V> | undefined
   isLoading: boolean
   disabled: boolean
   isMapped: boolean
   param: string
-  onSelectRowCell: UseSelectDataset['onSelectRowCell']
+  onSelectRowCell: OnSelectRowCellFn<SelectValueType<V>>
   rowCellOptions: SelectOption<SelectValueType<V>>[]
   setSource: (source: InputSource) => void
   tooltipValue: { isEmpty: boolean; value: string }

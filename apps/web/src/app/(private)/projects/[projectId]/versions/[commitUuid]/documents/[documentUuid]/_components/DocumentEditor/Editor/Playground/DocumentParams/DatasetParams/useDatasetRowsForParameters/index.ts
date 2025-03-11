@@ -1,49 +1,20 @@
-import useDatasetRows, { ClientDatasetRow } from '$/stores/datasetRows'
+import useDatasetRows from '$/stores/datasetRows'
 import { useCallback, useMemo, useState } from 'react'
 import useDatasetRowsCount from '$/stores/datasetRowsCount'
 import {
-  type Inputs,
   DatasetV2,
   DatasetVersion,
   DocumentVersion,
+  LinkedDatasetRow,
 } from '@latitude-data/core/browser'
 import {
   useDatasetRowWithPosition,
   type WithPositionData,
 } from './useDatasetRowsWithPosition'
-import { buildColumnList } from '$/hooks/useVersionedDatasets'
 import { useDocumentParameters } from '$/hooks/useDocumentParameters'
 import { SelectOption } from '@latitude-data/web-ui'
 import { ConversationMetadata } from 'promptl-ai'
 
-function mappedToInputs({
-  inputs,
-  mappedInputs,
-  datasetRow,
-}: {
-  inputs: Inputs<'dataset'>
-  mappedInputs: Record<string, number>
-  datasetRow: ClientDatasetRow | undefined
-}) {
-  const cells = datasetRow?.cells ?? []
-  const mapped = Object.entries(mappedInputs).reduce((acc, [key, value]) => {
-    const cell = cells[value] ?? ''
-    acc[key] = {
-      value: String(cell),
-      metadata: {
-        includeInPrompt: true,
-      },
-    }
-    return acc
-  }, {} as Inputs<'dataset'>)
-
-  // Recalculate inputs
-  return Object.entries(inputs).reduce((acc, [key, value]) => {
-    const newInput = mapped[key]
-    acc[key] = newInput ?? value // If not found let existing
-    return acc
-  }, {} as Inputs<'dataset'>)
-}
 /**
  * This hook is responsible of fetching the dataset rows and the
  * total amount of dataset rows for a dataset (v2).
@@ -80,12 +51,14 @@ export function useDatasetRowsForParameters({
   )
 
   const {
-    dataset: { inputs, mappedInputs, setDataset },
+    dataset: { inputs, mappedInputs: mi, setDatasetV2 },
   } = useDocumentParameters({
     document,
     commitVersionUuid,
     datasetVersion: DatasetVersion.V2,
   })
+  // TODO: This type conversion can be removed after dataset v2 migration
+  const mappedInputs = mi as LinkedDatasetRow['mappedInputs']
 
   const onFetchPosition = useCallback(
     (data: WithPositionData) => {
@@ -109,16 +82,6 @@ export function useDatasetRowsForParameters({
           : undefined,
     page: position === undefined ? undefined : String(position.position),
     pageSize: '1', // Paginatinate one by one in document parameters
-    onFetched: (rows) => {
-      const row = rows[0]
-      if (!row) return
-
-      console.log('ON_ROW_FETCHED', row)
-
-      // Check history hook
-      // Map dataset row to parameter inputs. This is only V2
-      // set Selected datasetRow id
-    },
   })
   const datasetRow = datasetRows?.[0]
 
@@ -144,35 +107,27 @@ export function useDatasetRowsForParameters({
   )
 
   const onSelectRowCell = useCallback(
-    (param: string) => (headerIndex: number) => {
-      console.log('SELECTED_CELL', param, headerIndex, dataset, datasetRow)
-
+    (param: string) => (columnIdentifier: string) => {
       if (!dataset || !datasetRow) return
 
       const prevMapped = mappedInputs ?? {}
-      const mapped = { ...prevMapped, [param]: Number(headerIndex) }
-      const newInputs = mappedToInputs({
-        inputs,
-        datasetRow,
-        mappedInputs: mapped,
-      })
-      setDataset({
+      const mapped = { ...prevMapped, [param]: columnIdentifier }
+      setDatasetV2({
         datasetId: dataset.id,
         datasetVersion: DatasetVersion.V2,
         data: {
-          inputs: newInputs,
           datasetRowId: datasetRow.id,
           mappedInputs: mapped,
         },
       })
     },
-    [inputs, setDataset, mappedInputs, dataset?.id, datasetRow],
+    [inputs, setDatasetV2, mappedInputs, dataset?.id, datasetRow],
   )
 
   console.log('META.paramaters', metadata?.parameters)
   console.log('META.config.paramaters', metadata?.config?.parameters)
   console.log('ROWS_DATA', { datasetRow, position, count })
-  console.log("ROW_CELL_OPTIONS", rowCellOptions)
+  console.log('ROW_CELL_OPTIONS', rowCellOptions)
   return {
     isLoading: isLoadingRow || isLoadingDatasetRowsCount || isLoadingPosition,
     mappedInputs: mappedInputs ?? {},

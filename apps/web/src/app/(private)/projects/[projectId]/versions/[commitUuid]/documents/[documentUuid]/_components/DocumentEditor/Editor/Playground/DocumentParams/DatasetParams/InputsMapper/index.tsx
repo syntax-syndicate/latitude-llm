@@ -6,6 +6,7 @@ import {
   PlaygroundInput,
   DatasetV2,
   DatasetVersion,
+  LinkedDatasetRow,
 } from '@latitude-data/core/browser'
 import {
   ClientOnly,
@@ -14,7 +15,6 @@ import {
   type ICommitContextType,
 } from '@latitude-data/web-ui'
 
-import { UseSelectDataset } from '../useSelectDataset'
 import { InputsMapperItem, OnSelectRowCellFn } from './InputsMapperItem'
 
 function getTooltipValue(input: PlaygroundInput<'dataset'>) {
@@ -30,7 +30,7 @@ function getTooltipValue(input: PlaygroundInput<'dataset'>) {
   }
 }
 
-export function DatasetsV1InputMapper({
+export function InputMapper({
   document,
   commit,
   mappedInputs,
@@ -42,9 +42,9 @@ export function DatasetsV1InputMapper({
 }: {
   document: DocumentVersion
   commit: ICommitContextType['commit']
-  mappedInputs: LinkedDataset['mappedInputs']
-  rowCellOptions: SelectOption<number>[]
-  onSelectRowCell: OnSelectRowCellFn<number>
+  mappedInputs: LinkedDatasetRow['mappedInputs']
+  rowCellOptions: SelectOption<string>[]
+  onSelectRowCell: OnSelectRowCellFn<string>
   isLoading: boolean
   selectedDataset: Dataset | DatasetV2 | undefined
   datasetVersion: DatasetVersion
@@ -71,14 +71,14 @@ export function DatasetsV1InputMapper({
               return (
                 <InputsMapperItem
                   key={idx}
-                  value={value}
+                  value={value as unknown as string}
                   isLoading={isLoading}
-                  datasetVersion={DatasetVersion.V1}
+                  datasetVersion={DatasetVersion.V2}
                   disabled={disabled}
                   isMapped={isMapped}
                   param={param}
                   onSelectRowCell={onSelectRowCell}
-                  rowCellOptions={rowCellOptions}
+                  rowCellOptions={rowCellOptions as SelectOption<string>[]}
                   setSource={setSource}
                   tooltipValue={inputTooltipValue}
                   copyToManual={copyToManual}

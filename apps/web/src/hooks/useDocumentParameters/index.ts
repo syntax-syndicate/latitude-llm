@@ -170,11 +170,11 @@ export function useDocumentParameters<
 
   let inputsBySource =
     source === INPUT_SOURCE.dataset
-      // TODO: remove after datasets 2 migration
-      ? (linkedDataset as LinkedDataset).inputs
+      ? // TODO: remove after datasets 2 migration
+        (linkedDataset as LinkedDataset).inputs
       : inputs[source].inputs
 
-  console.log("LINKED_DATASET", linkedDataset)
+  console.log('LINKED_DATASET', linkedDataset)
 
   const setInputs = useCallback(
     <S extends LocalInputSource>(source: S, newInputs: LocalInputs<S>) => {
@@ -329,9 +329,11 @@ export function useDocumentParameters<
   const setDatasetV2 = useCallback(
     async ({
       datasetId,
+      datasetVersion,
       data,
     }: {
       datasetId: number
+      datasetVersion: DatasetVersion
       data: LinkedDatasetRow
     }) => {
       await saveLinkedDataset({
@@ -358,6 +360,8 @@ export function useDocumentParameters<
       )
 
       // TODO: Remove after a dataset V2 migration
+      // This is not needed with new datasets. We don't store the values
+      // of the cells viewed because they can be modified now.
       if (document.datasetId && linkedDataset && 'inputs' in linkedDataset) {
         const datasetInputs = recalculateInputs<'dataset'>({
           inputs: linkedDataset.inputs,

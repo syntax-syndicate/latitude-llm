@@ -1,9 +1,15 @@
 import { ROUTES } from '$/services/routes'
-import { DatasetVersion, DocumentVersion } from '@latitude-data/core/browser'
+import {
+  DatasetVersion,
+  DocumentVersion,
+  LinkedDataset,
+  LinkedDatasetRow,
+} from '@latitude-data/core/browser'
 import {
   Button,
   cn,
   Select,
+  SelectOption,
   type ICommitContextType,
 } from '@latitude-data/web-ui'
 import Link from 'next/link'
@@ -11,6 +17,7 @@ import Link from 'next/link'
 import { ParametersPaginationNav } from '../PaginationNav'
 import { InputMapper } from './InputsMapper'
 import { DatasetsV1InputMapper } from './InputsMapper/DatasetsV1InputsMapper'
+import { type OnSelectRowCellFn } from './InputsMapper/InputsMapperItem'
 import { type UseSelectDataset } from './useSelectDataset'
 
 function BlankSlate() {
@@ -71,14 +78,24 @@ export function DatasetParams({
             document={document}
             commit={commit}
             isLoading={data.isLoading}
-            mappedInputs={data.mappedInputs}
-            rowCellOptions={data.rowCellOptions}
-            onSelectRowCell={data.onSelectRowCell}
+            mappedInputs={data.mappedInputs as LinkedDataset['mappedInputs']}
+            rowCellOptions={data.rowCellOptions as SelectOption<number>[]}
+            onSelectRowCell={data.onSelectRowCell as OnSelectRowCellFn<number>}
             selectedDataset={data.selectedDataset}
             datasetVersion={datasetVersion}
           />
         ) : (
-          <div>TBD</div>
+          <InputMapper
+            key={selectedId}
+            document={document}
+            commit={commit}
+            isLoading={data.isLoading}
+            mappedInputs={data.mappedInputs as LinkedDatasetRow['mappedInputs']}
+            rowCellOptions={data.rowCellOptions as SelectOption<string>[]}
+            onSelectRowCell={data.onSelectRowCell as OnSelectRowCellFn<string>}
+            selectedDataset={data.selectedDataset}
+            datasetVersion={datasetVersion}
+          />
         )}
       </div>
     </div>

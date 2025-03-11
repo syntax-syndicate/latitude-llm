@@ -169,5 +169,3 @@ export function useDatasetV1RowsForParamaters({
     onNextPage,
   }
 }
-
-export type UseDatasetRowsForParamaters = ReturnType<typeof useDatasetV1RowsForParamaters>
