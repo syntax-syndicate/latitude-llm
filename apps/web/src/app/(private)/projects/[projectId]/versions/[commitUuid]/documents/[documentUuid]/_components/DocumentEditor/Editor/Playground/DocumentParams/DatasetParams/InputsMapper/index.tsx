@@ -16,23 +16,25 @@ import {
 } from '@latitude-data/web-ui'
 
 import { InputsMapperItem, OnSelectRowCellFn } from './InputsMapperItem'
+import { useCallback } from 'react'
+import { objectToString } from '@latitude-data/constants'
 
-function getTooltipValue(input: PlaygroundInput<'dataset'>) {
+function getTooltipValue(input: unknown) {
   if (input === undefined || input === null) {
     return { isEmpty: true, value: 'No value found' }
   }
 
-  const value = typeof input === 'string' ? input : input.value
-  const isEmpty = value === ''
+  const isEmpty = input === ''
   return {
     isEmpty,
-    value: isEmpty ? 'Empty value' : value,
+    value: isEmpty ? 'Empty value' : objectToString(input, input?.toString()),
   }
 }
 
 export function InputMapper({
   document,
   commit,
+  parameters,
   mappedInputs,
   rowCellOptions,
   isLoading,
@@ -42,6 +44,7 @@ export function InputMapper({
 }: {
   document: DocumentVersion
   commit: ICommitContextType['commit']
+  parameters: string[]
   mappedInputs: LinkedDatasetRow['mappedInputs']
   rowCellOptions: SelectOption<string>[]
   onSelectRowCell: OnSelectRowCellFn<string>
@@ -49,24 +52,21 @@ export function InputMapper({
   selectedDataset: Dataset | DatasetV2 | undefined
   datasetVersion: DatasetVersion
 }) {
-  const { setSource, dataset: ds } = useDocumentParameters({
+  const { setSource } = useDocumentParameters({
     document,
     commitVersionUuid: commit.uuid,
     datasetVersion,
   })
-  const copyToManual = ds.copyToManual
-  const inputs = ds.inputs as LinkedDataset['inputs']
-  const inputKeys = Object.entries(inputs)
-
+  const copyToManual = useCallback(() => { }, [])
   return (
     <ClientOnly>
       <div className='flex flex-col gap-3'>
-        {Object.keys(inputs).length > 0 ? (
+        {parameters.length > 0 ? (
           <div className='grid grid-cols-[auto_1fr] gap-y-3'>
-            {inputKeys.map(([param, input], idx) => {
+            {parameters.map((param, idx) => {
               const value = mappedInputs[param]
-              const inputTooltipValue = getTooltipValue(input)
-              const isMapped = mappedInputs[param] !== undefined
+              const inputTooltipValue = getTooltipValue(value)
+              const isMapped = value !== undefined
               const disabled = isLoading || !selectedDataset
               return (
                 <InputsMapperItem

@@ -72,6 +72,7 @@ export function DatasetParams({
         </div>
       </div>
       <div className={cn({ 'opacity-50': data.isLoading })}>
+        {/* TODO: Remove after datasets 2 migration */}
         {datasetVersion === DatasetVersion.V1 ? (
           <DatasetsV1InputMapper
             key={selectedId}
@@ -89,6 +90,7 @@ export function DatasetParams({
             key={selectedId}
             document={document}
             commit={commit}
+            parameters={data.parameters}
             isLoading={data.isLoading}
             mappedInputs={data.mappedInputs as LinkedDatasetRow['mappedInputs']}
             rowCellOptions={data.rowCellOptions as SelectOption<string>[]}

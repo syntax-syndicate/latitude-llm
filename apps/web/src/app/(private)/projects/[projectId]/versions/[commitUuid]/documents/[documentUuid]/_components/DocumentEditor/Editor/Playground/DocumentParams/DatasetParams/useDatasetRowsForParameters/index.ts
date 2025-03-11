@@ -33,6 +33,10 @@ export function useDatasetRowsForParameters({
   enabled?: boolean
   metadata: ConversationMetadata | undefined
 }) {
+  const parameters = useMemo(() => {
+    if (!metadata) return []
+    return Array.from(metadata.parameters)
+  }, [metadata])
   const rowCellOptions = useMemo<SelectOption<string>[]>(
     () =>
       dataset?.columns.map((c) => ({ value: c.identifier, label: c.name })) ??
@@ -124,13 +128,11 @@ export function useDatasetRowsForParameters({
     [inputs, setDatasetV2, mappedInputs, dataset?.id, datasetRow],
   )
 
-  console.log('META.paramaters', metadata?.parameters)
-  console.log('META.config.paramaters', metadata?.config?.parameters)
   console.log('ROWS_DATA', { datasetRow, position, count })
-  console.log('ROW_CELL_OPTIONS', rowCellOptions)
   return {
     isLoading: isLoadingRow || isLoadingDatasetRowsCount || isLoadingPosition,
     mappedInputs: mappedInputs ?? {},
+    parameters,
     rowCellOptions,
     onSelectRowCell,
     position: position?.position,

@@ -94,6 +94,8 @@ export function useSelectDataset({
 
   return {
     ...rowsData,
+    // TODO: This can be removed after dataset v2 migration. It will be part of rows
+    parameters: !isV1 ? rowsV2.parameters : [],
     datasetOptions,
     selectedDataset,
     onSelectDataset,
