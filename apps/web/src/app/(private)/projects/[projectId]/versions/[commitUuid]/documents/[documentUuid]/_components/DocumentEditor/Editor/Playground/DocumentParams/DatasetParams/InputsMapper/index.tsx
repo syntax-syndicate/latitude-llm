@@ -1,12 +1,9 @@
 import { useDocumentParameters } from '$/hooks/useDocumentParameters'
 import {
   Dataset,
-  LinkedDataset,
   DocumentVersion,
-  PlaygroundInput,
   DatasetV2,
   DatasetVersion,
-  LinkedDatasetRow,
 } from '@latitude-data/core/browser'
 import {
   ClientOnly,
@@ -17,25 +14,12 @@ import {
 
 import { InputsMapperItem, OnSelectRowCellFn } from './InputsMapperItem'
 import { useCallback } from 'react'
-import { objectToString } from '@latitude-data/constants'
-
-function getTooltipValue(input: unknown) {
-  if (input === undefined || input === null) {
-    return { isEmpty: true, value: 'No value found' }
-  }
-
-  const isEmpty = input === ''
-  return {
-    isEmpty,
-    value: isEmpty ? 'Empty value' : objectToString(input, input?.toString()),
-  }
-}
+import { type DatasetMappedValue } from '../useDatasetRowsForParameters'
 
 export function InputMapper({
   document,
   commit,
   parameters,
-  mappedInputs,
   rowCellOptions,
   isLoading,
   onSelectRowCell,
@@ -44,8 +28,7 @@ export function InputMapper({
 }: {
   document: DocumentVersion
   commit: ICommitContextType['commit']
-  parameters: string[]
-  mappedInputs: LinkedDatasetRow['mappedInputs']
+  parameters: DatasetMappedValue[]
   rowCellOptions: SelectOption<string>[]
   onSelectRowCell: OnSelectRowCellFn<string>
   isLoading: boolean
@@ -57,34 +40,33 @@ export function InputMapper({
     commitVersionUuid: commit.uuid,
     datasetVersion,
   })
+  // TODO: Implement this
   const copyToManual = useCallback(() => { }, [])
+  const disabled = !selectedDataset || isLoading
   return (
     <ClientOnly>
       <div className='flex flex-col gap-3'>
         {parameters.length > 0 ? (
           <div className='grid grid-cols-[auto_1fr] gap-y-3'>
-            {parameters.map((param, idx) => {
-              const value = mappedInputs[param]
-              const inputTooltipValue = getTooltipValue(value)
-              const isMapped = value !== undefined
-              const disabled = isLoading || !selectedDataset
-              return (
-                <InputsMapperItem
-                  key={idx}
-                  value={value as unknown as string}
-                  isLoading={isLoading}
-                  datasetVersion={DatasetVersion.V2}
-                  disabled={disabled}
-                  isMapped={isMapped}
-                  param={param}
-                  onSelectRowCell={onSelectRowCell}
-                  rowCellOptions={rowCellOptions as SelectOption<string>[]}
-                  setSource={setSource}
-                  tooltipValue={inputTooltipValue}
-                  copyToManual={copyToManual}
-                />
-              )
-            })}
+            {parameters.map((mapped, idx) => (
+              <InputsMapperItem
+                key={idx}
+                value={mapped.value}
+                isLoading={isLoading}
+                datasetVersion={DatasetVersion.V2}
+                disabled={disabled}
+                isMapped={mapped.isMapped}
+                param={mapped.param}
+                onSelectRowCell={onSelectRowCell}
+                rowCellOptions={rowCellOptions as SelectOption<string>[]}
+                setSource={setSource}
+                tooltipValue={{
+                  value: mapped.value,
+                  isEmpty: mapped.isEmpty,
+                }}
+                copyToManual={copyToManual}
+              />
+            ))}
           </div>
         ) : (
           <Text.H6 color='foregroundMuted'>

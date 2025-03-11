@@ -50,9 +50,7 @@ export async function saveLinkedDataset<V extends DatasetVersion>(
       rowIndex: number | undefined
       // FIXME: do manadatory when migrated to Dataset V2
       datasetRowId: number | undefined
-      mappedInputs:
-        | LinkedDataset['mappedInputs']
-        | LinkedDatasetRow['mappedInputs']
+      mappedInputs: Record<string, number | string>
       inputs?: LinkedDataset['inputs']
     }
   },

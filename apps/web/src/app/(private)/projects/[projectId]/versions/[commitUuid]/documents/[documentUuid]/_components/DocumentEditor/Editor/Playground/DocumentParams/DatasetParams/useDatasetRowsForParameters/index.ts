@@ -14,6 +14,14 @@ import {
 import { useDocumentParameters } from '$/hooks/useDocumentParameters'
 import { SelectOption } from '@latitude-data/web-ui'
 import { ConversationMetadata } from 'promptl-ai'
+import { objectToString } from '@latitude-data/constants'
+
+export type DatasetMappedValue = {
+  param: string
+  value: string
+  isMapped: boolean
+  isEmpty: boolean
+}
 
 /**
  * This hook is responsible of fetching the dataset rows and the
@@ -33,10 +41,6 @@ export function useDatasetRowsForParameters({
   enabled?: boolean
   metadata: ConversationMetadata | undefined
 }) {
-  const parameters = useMemo(() => {
-    if (!metadata) return []
-    return Array.from(metadata.parameters)
-  }, [metadata])
   const rowCellOptions = useMemo<SelectOption<string>[]>(
     () =>
       dataset?.columns.map((c) => ({ value: c.identifier, label: c.name })) ??
@@ -55,14 +59,16 @@ export function useDatasetRowsForParameters({
   )
 
   const {
+    onParametersChange,
     dataset: { inputs, mappedInputs: mi, setDatasetV2 },
   } = useDocumentParameters({
     document,
     commitVersionUuid,
     datasetVersion: DatasetVersion.V2,
   })
+
   // TODO: This type conversion can be removed after dataset v2 migration
-  const mappedInputs = mi as LinkedDatasetRow['mappedInputs']
+  const mappedInputs = mi as unknown as LinkedDatasetRow['mappedInputs']
 
   const onFetchPosition = useCallback(
     (data: WithPositionData) => {
@@ -127,6 +133,34 @@ export function useDatasetRowsForParameters({
     },
     [inputs, setDatasetV2, mappedInputs, dataset?.id, datasetRow],
   )
+  const parameters = useMemo<DatasetMappedValue[]>(() => {
+    if (!metadata) return []
+
+    const values = Array.from(metadata.parameters).map((param) => {
+      const columnIdentifier = mappedInputs[param]
+      const cells = datasetRow?.rowData ?? {}
+      const rawValue = columnIdentifier ? cells[columnIdentifier] : undefined
+      const value = objectToString(rawValue, rawValue?.toString())
+      const isEmpty = value === ''
+      return {
+        param,
+        value,
+        isEmpty,
+        isMapped: !!columnIdentifier
+      }
+    })
+    const mappedValues = values.reduce(
+      (acc, { param, value }) => {
+        acc[param] = value
+        return acc
+      },
+      {} as Record<string, string>,
+    )
+
+    onParametersChange(mappedValues)
+
+    return values
+  }, [metadata, onParametersChange, mappedInputs, datasetRow])
 
   console.log('ROWS_DATA', { datasetRow, position, count })
   return {
