@@ -242,7 +242,7 @@ export const API_ROUTES = {
     count: '/api/dataset-rows/count',
     withPosition: (id: number) => {
       return {
-        root: `/api/dataset-rows/with-position/${id}`,
+        root: `/api/dataset-rows/${id}/position`,
       }
     },
   },
