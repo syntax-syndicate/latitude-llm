@@ -51,7 +51,7 @@ export function InputMapper({
             {parameters.map((mapped, idx) => (
               <InputsMapperItem
                 key={idx}
-                value={mapped.value}
+                value={mapped.columnIdentifier}
                 isLoading={isLoading}
                 datasetVersion={DatasetVersion.V2}
                 disabled={disabled}

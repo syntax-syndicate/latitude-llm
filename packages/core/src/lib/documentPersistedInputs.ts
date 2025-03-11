@@ -52,7 +52,7 @@ export type LinkedDataset = {
 }
 
 export type LinkedDatasetRow = {
-  datasetRowId: number
+  datasetRowId: number | undefined
   mappedInputs: Record<string, string>
   // Not used. Here only for consistency
   inputs: Record<string, DatasetV2Input>

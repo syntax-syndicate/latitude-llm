@@ -32,10 +32,11 @@ export default function useDocumentVersions(
   }: { commitUuid?: string; projectId?: number } = { commitUuid: HEAD_COMMIT },
   opts: SWRConfiguration & {
     onSuccessCreate?: (document: DocumentVersion) => void
+    onSuccessAssignDataset?: (document: DocumentVersion) => void
   } = {},
 ) {
   const { toast } = useToast()
-  const { onSuccessCreate } = opts
+  const { onSuccessCreate, onSuccessAssignDataset } = opts
   const router = useRouter()
   const { execute: executeCreateDocument } = useServerAction(
     createDocumentVersionAction,
@@ -286,6 +287,7 @@ export default function useDocumentVersions(
           d.documentUuid === document.documentUuid ? document : d,
         ),
       )
+      onSuccessAssignDataset?.(document)
     },
   })
 

@@ -22,10 +22,27 @@ export async function assignDataset(
   },
   trx = database,
 ): Promise<TypedResult<DocumentVersion, Error>> {
-  const data =
-    datasetVersion === DatasetVersion.V1
-      ? { datasetId: dataset.id }
-      : { datasetV2Id: dataset.id }
+  let data: Record<string, any>
+  if (datasetVersion === DatasetVersion.V1) {
+    data = { datasetId: dataset.id }
+  } else {
+    const existingData = document.linkedDatasetAndRow?.[dataset.id]
+    const justDatasetId = { datasetV2Id: dataset.id }
+
+    data = existingData ? justDatasetId : {
+      ...justDatasetId,
+      linkedDatasetAndRow: {
+        ...document.linkedDatasetAndRow,
+        [dataset.id]: {
+          datasetRowId: undefined,
+          mappedInputs: {},
+        },
+      },
+    }
+  }
+
+  console.log("ASSIGN_DATASET_DATA", data)
+
   return await Transaction.call(async (tx) => {
     const result = await tx
       .update(documentVersions)
@@ -33,6 +50,8 @@ export async function assignDataset(
       .where(eq(documentVersions.id, document.id))
       .returning()
 
+    const doc = result[0]!
+    console.log("ASSIGN_DATASET_DOC", doc.linkedDatasetAndRow)
     return Result.ok(result[0]!)
   }, trx)
 }

@@ -23,19 +23,21 @@ function getLinkedData({
   rowIndex: number | undefined
   datasetRowId: number | undefined
   inputs?: LinkedDataset['inputs']
-  mappedInputs: LinkedDataset['mappedInputs'] | LinkedDatasetRow['mappedInputs']
+  mappedInputs: Record<string, number | string> | undefined
 }) {
   if (datasetVersion === DatasetVersion.V1) {
     return { inputs, mappedInputs, rowIndex }
   }
 
-  return { mappedInputs, datasetRowId: datasetRowId! }
+  if (mappedInputs === undefined || datasetRowId === undefined) return
+
+  return { mappedInputs, datasetRowId }
 }
 
 type LinkedColumn<V extends DatasetVersion = DatasetVersion> =
   V extends DatasetVersion.V1
-    ? Record<number, LinkedDataset>
-    : Record<number, LinkedDatasetRow>
+  ? Record<number, LinkedDataset>
+  : Record<number, LinkedDatasetRow>
 export async function saveLinkedDataset<V extends DatasetVersion>(
   {
     document,
@@ -50,7 +52,7 @@ export async function saveLinkedDataset<V extends DatasetVersion>(
       rowIndex: number | undefined
       // FIXME: do manadatory when migrated to Dataset V2
       datasetRowId: number | undefined
-      mappedInputs: Record<string, number | string>
+      mappedInputs: Record<string, number | string> | undefined
       inputs?: LinkedDataset['inputs']
     }
   },
@@ -75,15 +77,20 @@ export async function saveLinkedDataset<V extends DatasetVersion>(
   }
 
   return await Transaction.call(async (tx) => {
+    const datasetLinkedData = getLinkedData({
+      datasetVersion,
+      rowIndex: data.rowIndex,
+      datasetRowId: data.datasetRowId,
+      inputs: data.inputs,
+      mappedInputs: data.mappedInputs,
+    })
+
+    // Datasets V2 Nothing to change (datasetRowId or mappedInputs)
+    if (!datasetLinkedData) return Result.ok(document)
+
     const newLinkedData = {
       ...prevData,
-      [dataset.id]: getLinkedData({
-        datasetVersion,
-        rowIndex: data.rowIndex,
-        datasetRowId: data.datasetRowId,
-        inputs: data.inputs,
-        mappedInputs: data.mappedInputs,
-      }),
+      [dataset.id]: datasetLinkedData,
     }
 
     let insertData: Partial<typeof documentVersions.$inferInsert>

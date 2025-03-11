@@ -20,7 +20,7 @@ const datasetInputSchema = z.object({
 const inputsSchema = z.record(datasetInputSchema).optional()
 
 // TODO: Remove number when migrated to datasets V2
-const mappedInputsSchema = z.record(z.union([z.number(), z.string()]))
+const mappedInputsSchema = z.record(z.union([z.number(), z.string()])).optional()
 
 export const saveLinkedDatasetAction = withDataset
   .createServerAction()
@@ -34,15 +34,16 @@ export const saveLinkedDatasetAction = withDataset
     }),
   )
   .handler(async ({ input, ctx }) => {
-    console.log('INPUT', input)
     return await saveLinkedDataset({
       document: ctx.document,
       datasetVersion: ctx.datasetVersion,
       dataset: ctx.dataset,
       data: {
         datasetRowId: input.datasetRowId,
-        rowIndex: input.rowIndex,
         mappedInputs: input.mappedInputs,
+
+        // DEPRECATED: Remove when migrated to datasets V2
+        rowIndex: input.rowIndex,
         inputs: input.inputs,
       },
     }).then((r) => r.unwrap())

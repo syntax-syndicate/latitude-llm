@@ -3,13 +3,13 @@ import {
   DatasetVersion,
   DocumentVersion,
   LinkedDataset,
-  LinkedDatasetRow,
 } from '@latitude-data/core/browser'
 import {
   Button,
   cn,
   Select,
   SelectOption,
+  Skeleton,
   type ICommitContextType,
 } from '@latitude-data/web-ui'
 import Link from 'next/link'
@@ -57,17 +57,23 @@ export function DatasetParams({
           value={selectedId}
         />
         <div className='flex-none'>
-          {data.selectedDataset && data.position !== undefined ? (
-            <ParametersPaginationNav
-              zeroIndex
-              currentIndex={data.position}
-              totalCount={data.count}
-              onPrevPage={data.onPrevPage}
-              onNextPage={data.onNextPage}
-              label='rows in dataset'
-            />
+          {data.isLoading ? (
+            <Skeleton height='h5' className='w-40 min-w-0' />
           ) : (
-            <BlankSlate />
+            <>
+              {data.selectedDataset && data.position !== undefined ? (
+                <ParametersPaginationNav
+                  zeroIndex={datasetVersion === DatasetVersion.V1}
+                  currentIndex={data.position}
+                  totalCount={data.count}
+                  onPrevPage={data.onPrevPage}
+                  onNextPage={data.onNextPage}
+                  label='rows in dataset'
+                />
+              ) : (
+                <BlankSlate />
+              )}
+            </>
           )}
         </div>
       </div>
@@ -92,7 +98,7 @@ export function DatasetParams({
             commit={commit}
             parameters={data.parameters}
             isLoading={data.isLoading}
-            mappedInputs={data.mappedInputs as LinkedDatasetRow['mappedInputs']}
+            mappedInputs={data.mappedInputs as unknown as Record<string, string>}
             rowCellOptions={data.rowCellOptions as SelectOption<string>[]}
             onSelectRowCell={data.onSelectRowCell as OnSelectRowCellFn<string>}
             selectedDataset={data.selectedDataset}

@@ -157,6 +157,8 @@ export function useDocumentParameters<
   const key = `${commitVersionUuid}:${document.documentUuid}`
   const inputs = allInputs[key] ?? EMPTY_INPUTS
   const source = inputs.source
+
+  console.log("DOCUMENT_LINKED_DATASET_ROW", document.linkedDatasetAndRow)
   const linkedDataset = getLinkedDataset({
     document,
     localInputs: inputs.dataset,
@@ -166,7 +168,7 @@ export function useDocumentParameters<
   let inputsBySource =
     source === INPUT_SOURCE.dataset
       ? // TODO: remove after datasets 2 migration
-        ((linkedDataset as LinkedDataset).inputs ?? {})
+      ((linkedDataset as LinkedDataset).inputs ?? {})
       : inputs[source].inputs
 
   const setInputs = useCallback(
@@ -332,8 +334,8 @@ export function useDocumentParameters<
       datasetRowId,
       mappedInputs,
     }: {
-      mappedInputs: Record<string, string>
-      datasetRowId: number
+      mappedInputs: LinkedDatasetRow['mappedInputs'] | undefined
+      datasetRowId: number | undefined
     }) => {
       setValue((oldState) => {
         const { state, doc } = getDocState(oldState, key)
@@ -345,8 +347,8 @@ export function useDocumentParameters<
             ...doc,
             datasetV2: {
               ...prevSource,
-              datasetRowId: datasetRowId,
-              mappedInputs,
+              ...(datasetRowId !== undefined && { datasetRowId }),
+              ...(mappedInputs !== undefined && { mappedInputs }),
             },
           },
         }
@@ -363,7 +365,10 @@ export function useDocumentParameters<
     }: {
       datasetId: number
       datasetVersion: DatasetVersion
-      data: Omit<LinkedDatasetRow, 'inputs'>
+      data: {
+        mappedInputs?: LinkedDatasetRow['mappedInputs'] | undefined
+        datasetRowId?: number | undefined
+      }
     }) => {
       const { doc } = getDocState(allInputs, key)
       const datasetDoc = doc['datasetV2']
@@ -461,11 +466,14 @@ export function useDocumentParameters<
   const [injectedParamaters, onParametersChange] = useState<
     Record<string, unknown>
   >({})
-  const parameters = useMemo(
-    () => ({ ...convertToParams(inputsBySource), ...injectedParamaters }),
-    [inputsBySource, injectedParamaters],
-  )
+  const parameters = useMemo(() => {
+    return {
+      ...convertToParams(inputsBySource),
+      ...injectedParamaters,
+    }
+  }, [inputsBySource, injectedParamaters])
 
+  console.log('LINKED_ROW_ID', inputs.datasetV2.datasetRowId)
   return {
     parameters,
     onParametersChange,
@@ -491,10 +499,13 @@ export function useDocumentParameters<
           : undefined,
       // DEPRECATED: Remove after a dataset V2 migration
       inputs: linkedDataset?.inputs,
-      mappedInputs: linkedDataset?.mappedInputs,
       setDataset,
-      setDatasetV2,
       copyToManual: copyDatasetInputsToManual,
+    },
+    datasetV2: {
+      datasetRowId: inputs.datasetV2.datasetRowId,
+      mappedInputs: linkedDataset?.mappedInputs,
+      setDataset: setDatasetV2,
     },
     history: {
       logUuid: inputs['history'].logUuid,
