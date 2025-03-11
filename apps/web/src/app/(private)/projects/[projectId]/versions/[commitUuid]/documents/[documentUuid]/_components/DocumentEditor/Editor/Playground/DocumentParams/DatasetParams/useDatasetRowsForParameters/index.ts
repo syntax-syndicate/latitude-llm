@@ -94,7 +94,6 @@ export function useDatasetRowsForParameters({
     onFetched: onFetchPosition,
   })
 
-  console.log('CURRENT_POSITION', position, selectedDatasetRowId)
   const { data: datasetRows, isLoading: isLoadingRow } = useDatasetRows({
     dataset: position && dataset ? (dataset as DatasetV2) : undefined,
     page: String(position?.position),
@@ -153,12 +152,22 @@ export function useDatasetRowsForParameters({
     },
     [setDataset, mappedInputs, dataset?.id, datasetRow],
   )
+
+  const colsByName = useMemo(() => {
+    const cols = dataset?.columns ?? []
+    return cols.reduce((map, col) => {
+      map.set(col.name, col.identifier)
+      return map
+    }, new Map<string, string>())
+  }, [dataset?.columns])
+
   const parameters = useMemo<DatasetMappedValue[]>(() => {
+    console.log("MAPPED INPUTS", mappedInputs)
     if (!metadata) return []
 
     const values = Array.from(metadata.parameters).map((param) => {
-      const columnIdentifier = mappedInputs[param]
       const cells = datasetRow?.rowData ?? {}
+      const columnIdentifier = mappedInputs[param] ?? colsByName.get(param)
       const rawValue = columnIdentifier ? cells[columnIdentifier] : undefined
       const value = objectToString(rawValue, rawValue?.toString())
       const isEmpty = value === ''
@@ -181,7 +190,15 @@ export function useDatasetRowsForParameters({
     onParametersChange(mappedValues)
 
     return values
-  }, [metadata, onParametersChange, mappedInputs, datasetRow])
+  }, [
+    metadata,
+    onParametersChange,
+    mappedInputs,
+    datasetRow,
+    colsByName,
+  ])
+
+  console.log("PARAMETERS", parameters)
   return {
     isLoading: isLoadingRow || isLoadingDatasetRowsCount || isLoadingPosition,
     mappedInputs: mappedInputs ?? {},

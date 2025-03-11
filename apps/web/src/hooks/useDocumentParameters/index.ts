@@ -114,11 +114,7 @@ function getLinkedDataset({
     ? (document.linkedDataset ?? {})
     : (document.linkedDatasetAndRow ?? {})
 
-  console.log('ALL_INITIAL_DATA', all)
-
   const datasetData = all[identifier]
-  console.log('DATASET_ID', identifier)
-  console.log('DATASET_DATA', datasetData)
 
   if (!isV1) {
     return datasetData
@@ -476,6 +472,7 @@ export function useDocumentParameters<
     Record<string, unknown>
   >({})
   const parameters = useMemo(() => {
+    console.log("INJECTED PARAMETERS", injectedParamaters)
     return {
       ...convertToParams(inputsBySource),
       ...injectedParamaters,
