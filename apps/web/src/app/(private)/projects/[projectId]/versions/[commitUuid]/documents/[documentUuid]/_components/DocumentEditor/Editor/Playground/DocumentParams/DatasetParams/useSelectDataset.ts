@@ -16,7 +16,7 @@ import { useDatasetV1RowsForParamaters } from './useDatasetRowsForParameters/use
 import { ConversationMetadata } from 'promptl-ai'
 
 export function useSelectDataset({
-  document: refDocument,
+  document,
   commitVersionUuid,
   source,
   metadata,
@@ -26,7 +26,6 @@ export function useSelectDataset({
   source: InputSource
   metadata: ConversationMetadata | undefined
 }) {
-  const [document, setDocument] = useState<DocumentVersion>(refDocument)
   const [selectedDataset, setSelectedDataset] = useState<
     Dataset | DatasetV2 | undefined
   >()
@@ -34,11 +33,6 @@ export function useSelectDataset({
   const { commit } = useCurrentCommit()
   const { assignDataset } = useDocumentVersions(
     {},
-    {
-      onSuccessAssignDataset: (updatedDocument) => {
-        setDocument(updatedDocument)
-      },
-    },
   )
   const isEnabled = source === INPUT_SOURCE.dataset
   const {

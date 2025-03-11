@@ -1,5 +1,5 @@
 import useDatasetRows from '$/stores/datasetRows'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import useDatasetRowsCount from '$/stores/datasetRowsCount'
 import {
   DatasetV2,
@@ -48,6 +48,7 @@ export function useDatasetRowsForParameters({
   enabled?: boolean
   metadata: ConversationMetadata | undefined
 }) {
+  const fetchedPosition = useRef(false)
   const rowCellOptions = useMemo<SelectOption<string>[]>(
     () =>
       dataset?.columns.map((c) => ({ value: c.identifier, label: c.name })) ??
@@ -61,72 +62,64 @@ export function useDatasetRowsForParameters({
 
   const {
     onParametersChange,
-    datasetV2: { mappedInputs: mi, setDataset, datasetRowId: selectedDatasetRowId },
+    datasetV2: { mappedInputs: mi, setDataset, datasetRowId },
   } = useDocumentParameters({
     document,
     commitVersionUuid,
     datasetVersion: DatasetVersion.V2,
   })
-
-  /* const selectedDatasetRowId = */
-  /*   document.linkedDatasetAndRow?.[document.datasetV2Id!]?.datasetRowId */
-
-  console.log("SELECTED_DATASET_ROW_ID", selectedDatasetRowId)
+  const [selectedDatasetRowId, setSelectedDatasetRowId] = useState<
+    number | undefined
+  >(datasetRowId)
 
   const [position, setPosition] = useState<WithPositionData | undefined>(
     getInitialPosition(selectedDatasetRowId),
   )
-
-  useEffect(() => {
-    setPosition(getInitialPosition(selectedDatasetRowId))
-  }, [selectedDatasetRowId, document.datasetV2Id])
 
   // TODO: This type conversion can be removed after dataset v2 migration
   const mappedInputs = mi as unknown as LinkedDatasetRow['mappedInputs']
 
   const onFetchPosition = useCallback(
     (data: WithPositionData) => {
+      fetchedPosition.current = true
       setPosition(data)
     },
     [selectedDatasetRowId, document.datasetV2Id],
   )
 
-  console.log('POSITION_DATASET', dataset)
-  console.log('POSITION_DATASET_ROW', selectedDatasetRowId)
-  console.log('POSITION_ENABLED', enabled)
   const { isLoading: isLoadingPosition } = useDatasetRowWithPosition({
     dataset: enabled && dataset ? dataset : undefined,
+    enabled: !fetchedPosition.current,
     datasetRowId: selectedDatasetRowId,
     onFetched: onFetchPosition,
   })
 
-  console.log('POSITION_POSITION', position?.position)
+  console.log('CURRENT_POSITION', position, selectedDatasetRowId)
   const { data: datasetRows, isLoading: isLoadingRow } = useDatasetRows({
-    dataset: dataset ? (dataset as DatasetV2) : undefined,
-    page: position === undefined ? undefined : String(position.position),
+    dataset: position && dataset ? (dataset as DatasetV2) : undefined,
+    page: String(position?.position),
     pageSize: '1', // Paginatinate one by one in document parameters
-    onFetched: (data) => {
+    onFetched: async (data) => {
       const row = data[0]
       if (!row || !dataset) return
 
-      setDataset({
+      await setDataset({
         datasetId: dataset.id,
         datasetVersion: DatasetVersion.V2,
         data: {
           datasetRowId: row.id,
         },
       })
+      setSelectedDatasetRowId(row.id)
     },
   })
   const datasetRow = datasetRows?.[0]
 
   const updatePosition = useCallback(
     (position: number) => {
-      console.log('NEW_POSITION', position)
       if (isLoadingRow) return
 
       setPosition((prev) => {
-        console.log('PREV_POSITION', prev)
         return prev ? { ...prev, position } : { position, page: 1 }
       })
     },
@@ -185,16 +178,10 @@ export function useDatasetRowsForParameters({
       {} as Record<string, string>,
     )
 
-    console.log('MAPPED_INPUTS', mappedInputs)
-    console.log('MAPPED VALUES', mappedValues)
-    console.log('ROW DATA', datasetRow?.rowData)
     onParametersChange(mappedValues)
 
     return values
   }, [metadata, onParametersChange, mappedInputs, datasetRow])
-
-  console.log('PARAMETERS', parameters)
-  console.log('POSITION', position)
   return {
     isLoading: isLoadingRow || isLoadingDatasetRowsCount || isLoadingPosition,
     mappedInputs: mappedInputs ?? {},

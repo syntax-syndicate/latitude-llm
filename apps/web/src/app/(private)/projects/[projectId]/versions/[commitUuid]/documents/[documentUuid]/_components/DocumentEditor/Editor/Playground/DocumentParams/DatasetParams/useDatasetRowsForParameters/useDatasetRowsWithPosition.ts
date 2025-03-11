@@ -14,17 +14,18 @@ export function useDatasetRowWithPosition(
     dataset,
     datasetRowId,
     onFetched,
+    enabled = true
   }: {
     dataset?: DatasetV2
+    enabled?: boolean
     datasetRowId?: string | number
     onFetched?: (data: WithPositionData) => void
   },
   opts?: SWRConfiguration,
 ) {
-  const enabled = dataset && datasetRowId
-  console.log("ENABLED", enabled)
+  const isEnabled = enabled && dataset && datasetRowId
   const fetcher = useFetcher(
-    enabled
+    isEnabled
       ? ROUTES.api.datasetsRows.withPosition(+datasetRowId).root
       : undefined,
     {
@@ -34,7 +35,7 @@ export function useDatasetRowWithPosition(
     },
   )
   const { data, isLoading } = useSWR<WithPositionData>(
-    enabled ? ['datasetRowWithPosition', dataset?.id, datasetRowId] : undefined,
+    isEnabled ? ['datasetRowWithPosition', dataset?.id, datasetRowId] : undefined,
     fetcher,
     {
       ...opts,

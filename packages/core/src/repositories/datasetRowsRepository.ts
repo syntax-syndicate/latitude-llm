@@ -1,4 +1,4 @@
-import { sql, eq, and, getTableColumns, count, desc } from 'drizzle-orm'
+import { sql, eq, lt, and, getTableColumns, count, desc } from 'drizzle-orm'
 
 import { DatasetRow, DEFAULT_PAGINATION_SIZE } from '../browser'
 import { datasetRows } from '../schema'
@@ -79,7 +79,6 @@ export class DatasetRowsRepository extends Repository<DatasetRow> {
       )
     }
 
-    const targetCreatedAtUTC = new Date(row.createdAt).toISOString()
     const countResult = await this.db
       .select({
         count: sql`count(*)`.mapWith(Number).as('total_count'),
@@ -88,10 +87,13 @@ export class DatasetRowsRepository extends Repository<DatasetRow> {
       .where(
         and(
           this.scopeFilter,
-          sql`${datasetRows.createdAt} >= ${targetCreatedAtUTC}`,
+          eq(datasetRows.datasetId, datasetId),
+          lt(datasetRows.id, row.id),
         ),
       )
-    const position = Number(countResult[0]?.count)
+
+    const position = Number(countResult[0]?.count) + 1
+
     const page = Math.ceil(position / DEFAULT_PAGINATION_SIZE)
 
     return Result.ok({ position, page })

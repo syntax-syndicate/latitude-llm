@@ -106,18 +106,28 @@ function getLinkedDataset({
   localInputs: PlaygroundInputs<'dataset'>['dataset']
   datasetVersion: DatasetVersion
 }) {
-  const datasetId = document.datasetId
-  if (!datasetId) return EMPTY_LINKED_DATASET
-
   const isV1 = datasetVersion === DatasetVersion.V1
+  const identifier = isV1 ? document.datasetId : document.datasetV2Id
+  if (!identifier) return EMPTY_LINKED_DATASET
+
   let all = isV1
     ? (document.linkedDataset ?? {})
     : (document.linkedDatasetAndRow ?? {})
 
+  console.log('ALL_INITIAL_DATA', all)
+
+  const datasetData = all[identifier]
+  console.log('DATASET_ID', identifier)
+  console.log('DATASET_DATA', datasetData)
+
+  if (!isV1) {
+    return datasetData
+      ? { ...EMPTY_LINKED_DATASET_ROW, ...datasetData }
+      : EMPTY_LINKED_DATASET_ROW
+  }
+
+  // TODO: From here remove after migration to datasets V2
   const isEmpty = Object.keys(all).length === 0
-
-  if (!isV1) return all[datasetId] ?? EMPTY_LINKED_DATASET_ROW
-
   if (isEmpty) {
     const legacyInputs = localInputs as LinkedDataset
     return {
@@ -127,7 +137,7 @@ function getLinkedDataset({
     }
   }
 
-  return all[datasetId] ? all[datasetId] : EMPTY_LINKED_DATASET
+  return all[identifier] ? all[identifier] : EMPTY_LINKED_DATASET
 }
 
 export function useDocumentParameters<
@@ -158,7 +168,6 @@ export function useDocumentParameters<
   const inputs = allInputs[key] ?? EMPTY_INPUTS
   const source = inputs.source
 
-  console.log("DOCUMENT_LINKED_DATASET_ROW", document.linkedDatasetAndRow)
   const linkedDataset = getLinkedDataset({
     document,
     localInputs: inputs.dataset,
@@ -473,7 +482,6 @@ export function useDocumentParameters<
     }
   }, [inputsBySource, injectedParamaters])
 
-  console.log('LINKED_ROW_ID', inputs.datasetV2.datasetRowId)
   return {
     parameters,
     onParametersChange,
@@ -503,7 +511,10 @@ export function useDocumentParameters<
       copyToManual: copyDatasetInputsToManual,
     },
     datasetV2: {
-      datasetRowId: inputs.datasetV2.datasetRowId,
+      datasetRowId:
+        linkedDataset && 'datasetRowId' in linkedDataset
+          ? linkedDataset?.datasetRowId
+          : undefined,
       mappedInputs: linkedDataset?.mappedInputs,
       setDataset: setDatasetV2,
     },

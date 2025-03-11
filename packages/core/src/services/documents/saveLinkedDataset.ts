@@ -29,9 +29,19 @@ function getLinkedData({
     return { inputs, mappedInputs, rowIndex }
   }
 
-  if (mappedInputs === undefined || datasetRowId === undefined) return
+  if (mappedInputs !== undefined && datasetRowId !== undefined) {
+    return { mappedInputs, datasetRowId }
+  }
 
-  return { mappedInputs, datasetRowId }
+  if (mappedInputs !== undefined) {
+    return { mappedInputs }
+  }
+
+  if (datasetRowId !== undefined) {
+    return { datasetRowId }
+  }
+
+  return undefined
 }
 
 type LinkedColumn<V extends DatasetVersion = DatasetVersion> =
@@ -86,11 +96,14 @@ export async function saveLinkedDataset<V extends DatasetVersion>(
     })
 
     // Datasets V2 Nothing to change (datasetRowId or mappedInputs)
-    if (!datasetLinkedData) return Result.ok(document)
+    if (datasetLinkedData === undefined) return Result.ok(document)
 
     const newLinkedData = {
       ...prevData,
-      [dataset.id]: datasetLinkedData,
+      [dataset.id]: {
+        ...prevData[dataset.id],
+        ...datasetLinkedData,
+      }
     }
 
     let insertData: Partial<typeof documentVersions.$inferInsert>
@@ -106,6 +119,7 @@ export async function saveLinkedDataset<V extends DatasetVersion>(
       return Result.error(new Error('Invalid dataset version'))
     }
 
+    console.log('insertData', insertData)
     const result = await tx
       .update(documentVersions)
       .set(insertData)
